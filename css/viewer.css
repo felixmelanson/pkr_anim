@@ -1,0 +1,110 @@
+html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
+canvas { position: absolute; display: block; }
+body.render #controls { display: none; }   /* ?render=1: offline frame capture (tools/) */
+body.render #bridgeDebug { display: none; }
+
+#bridgeDebug {
+  display: none;
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  width: 286px;
+  max-height: calc(100vh - 28px);
+  overflow: auto;
+  box-sizing: border-box;
+  padding: 14px;
+  border: 1px solid rgba(120, 150, 170, .42);
+  border-radius: 12px;
+  background: rgba(15, 22, 29, .92);
+  color: #e0e8ee;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, .35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font: 12px/1.35 "Inter", "Helvetica Neue", "Segoe UI", Helvetica, Arial, sans-serif;
+  z-index: 20;
+}
+#bridgeDebug p { margin: 4px 0 11px; color: #9aa9b5; }
+.bridge-debug-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.bridge-debug-head strong { font-size: 13px; letter-spacing: .2px; }
+#bridgeDebug button {
+  appearance: none;
+  border: 1px solid rgba(150, 180, 195, .35);
+  border-radius: 6px;
+  padding: 4px 7px;
+  background: rgba(255, 255, 255, .08);
+  color: #e0e8ee;
+  cursor: pointer;
+  font: inherit;
+}
+#bridgeDebug button:hover { background: rgba(255, 255, 255, .16); }
+.bridge-debug-group { margin: 0 0 10px; }
+.bridge-debug-group legend { padding: 0; color: #68decc; font-weight: 600; }
+.bridge-debug-row { display: grid; grid-template-columns: 1fr 72px 72px; align-items: center; gap: 5px; margin-top: 4px; }
+.bridge-debug-row label { color: #c4d0d8; }
+.bridge-debug-row input { width: 100%; box-sizing: border-box; padding: 3px 4px; border: 1px solid rgba(150, 180, 195, .3); border-radius: 4px; background: rgba(0, 0, 0, .25); color: #f0f5f8; font: inherit; }
+.bridge-debug-axis { color: #8295a1; font-size: 10px; text-align: center; }
+.bridge-debug-copy { width: 100%; margin-top: 1px; }
+
+#controls {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-radius: 14px;
+  background: rgba(12, 14, 18, .62);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, .08);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .35);
+  font-family: "Inter", "Helvetica Neue", "Segoe UI", Helvetica, Arial, sans-serif;
+  color: #e0e8ee;
+  z-index: 10;
+  user-select: none;
+}
+
+#controls button, #controls a.btn-link {
+  appearance: none;
+  text-decoration: none;
+  box-sizing: border-box;
+  border: none;
+  background: rgba(255, 255, 255, .06);
+  color: #e0e8ee;
+  width: 36px;
+  height: 32px;
+  border-radius: 8px;
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background .15s ease;
+}
+#controls button:hover, #controls a.btn-link:hover { background: rgba(255, 255, 255, .16); }
+#controls button:active { background: rgba(255, 255, 255, .24); }
+#controls button.wide { width: auto; padding: 0 12px; font-size: 13px; }
+#controls button svg, #controls a.btn-link svg { display: block; }
+
+#controls input[type="range"] {
+  width: 220px;
+  accent-color: #68decc;
+}
+
+#stepLabel {
+  font-size: 12.5px;
+  color: #8a97a4;
+  min-width: 62px;
+  text-align: center;
+  letter-spacing: .3px;
+}
+
+@media (max-width: 720px) {
+  #controls { gap: 6px; padding: 8px 10px; }
+  #controls input[type="range"] { width: 110px; }
+  #controls button.wide span.label-text { display: none; }
+  #controls button.phone-hide, #controls a.phone-hide { display: none; }
+}

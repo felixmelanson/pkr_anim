@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+*.log
+.scratch/
+assets/pages/
+# local only: rendered videos and stills, the papers (copyrighted PDFs), the built site, reference screen recordings
+out/
+papers/
+_site/
+testing/*.mov

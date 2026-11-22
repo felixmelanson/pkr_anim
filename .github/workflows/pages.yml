@@ -1,5 +1,6 @@
 # Publish the animation viewer to GitHub Pages (Settings → Pages → Source: GitHub Actions).
 # Builds _site/ with tools/build-site.mjs: the viewer only (no elements page, render tools, papers or videos).
+# Two jobs, as in GitHub's own template: build uploads the site, deploy publishes it once that upload is finished.
 name: Pages
 on:
   push:
@@ -11,22 +12,27 @@ permissions:
   id-token: write
 concurrency:
   group: pages
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version: 22
       - run: node tools/build-site.mjs
+      - run: ls -la _site      # shows in the log what is being published
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4

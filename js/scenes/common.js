@@ -289,7 +289,7 @@ function glassPanel(x, y, w, h, r, a) {
     { // blur only what is behind the panel (plus a margin for the blur to draw on), not the whole canvas: the filter's cost follows the area drawn
       const bp = 14 * k, pad = Math.ceil(bp * 3), cw = c.canvas.width, ch = c.canvas.height;
       const sx = Math.max(0, Math.floor(m.a * x + m.e - pad)), sy = Math.max(0, Math.floor(m.d * y + m.f - pad)), sw = Math.min(cw - sx, Math.ceil(w * k + pad * 2)), sh = Math.min(ch - sy, Math.ceil(h * k + pad * 2));
-      if (sw > 0 && sh > 0) { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); c.filter = `blur(${bp.toFixed(1)}px) saturate(1.35)`; c.drawImage(c.canvas, sx, sy, sw, sh, sx, sy, sw, sh); c.filter = 'none'; c.restore(); } }
+      if (sw > 0 && sh > 0) { c.save(); c.setTransform(1, 0, 0, 1, 0, 0); drawFiltered(c, `blur(${bp.toFixed(1)}px) saturate(1.35)`, c.canvas, sx, sy, sw, sh, sx, sy, sw, sh); c.restore(); } }
     c.restore();
     c.beginPath(); c.roundRect(x + .75, y + .75, w - 1.5, h - 1.5, r); c.strokeStyle = light ? 'rgba(20,32,44,.12)' : 'rgba(255,255,255,.16)'; c.lineWidth = 1.2; c.stroke();
     c.restore();

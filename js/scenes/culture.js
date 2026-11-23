@@ -263,7 +263,7 @@ function blurLayer(px, dim, fn) {
   if (BLURL.width !== cv2.width || BLURL.height !== cv2.height) { BLURL.width = cv2.width; BLURL.height = cv2.height; }
   const l = BLURL.getContext('2d'); l.setTransform(1, 0, 0, 1, 0, 0); l.clearRect(0, 0, BLURL.width, BLURL.height); l.setTransform(main.getTransform());
   ctx = l; try { withClay(l, !THEME.light, fn); } finally { ctx = main; }      // full clay, as on the sharp cells: no rim snap when a cell goes out of focus
-  main.save(); main.setTransform(1, 0, 0, 1, 0, 0); main.filter = `blur(${(px * cv2.width / W).toFixed(1)}px)`; main.globalAlpha *= dim; main.drawImage(BLURL, 0, 0); main.filter = 'none'; main.restore();
+  main.save(); main.setTransform(1, 0, 0, 1, 0, 0); main.globalAlpha *= dim; drawFiltered(main, `blur(${(px * cv2.width / W).toFixed(1)}px)`, BLURL, 0, 0, BLURL.width, BLURL.height, 0, 0, BLURL.width, BLURL.height); main.restore();
 }
 /* Draw fn() and fade it as one picture (alpha a): into an offscreen layer at full strength (clay and textures as usual), then onto the stage. */
 let FADEL = [], FADE_D = 0;      // one offscreen canvas per nesting depth, so a group fade can sit inside another

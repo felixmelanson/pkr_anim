@@ -156,7 +156,7 @@ function confGlow(S, gt, C) {
   const pass = (fn, blurs) => {
     const E = fluoLayer(1, main); E.setTransform(M); E.globalCompositeOperation = 'lighter';
     NEU.forEach((n, i) => { E.save(); E.translate(spX(n.x, S.spread || 0) - n.x, i === 3 ? (S.anomNeuron3Y || 0) : 0); fn(E, n, i); E.restore(); });
-    for (const [a, b] of blurs) { main.save(); main.setTransform(1, 0, 0, 1, 0, 0); main.globalCompositeOperation = 'lighter'; main.globalAlpha = A * a; main.filter = `blur(${(b * px).toFixed(1)}px)`; main.drawImage(E.canvas, 0, 0); main.restore(); }
+    for (const [a, b] of blurs) { main.save(); main.setTransform(1, 0, 0, 1, 0, 0); main.globalCompositeOperation = 'lighter'; main.globalAlpha = A * a; drawFiltered(main, `blur(${(b * px).toFixed(1)}px)`, E.canvas, 0, 0, E.canvas.width, E.canvas.height, 0, 0, E.canvas.width, E.canvas.height); main.restore(); }
   };
   if (doG) pass((E, n, i) => fluoGreen(E, n, i, S, gt, C, false), [[.45 * CONF.gGlow, 2], [.35 * CONF.gGlow, 8], [.2 * CONF.gGlow, 24]]);
   if (doB) pass((E, n, i) => fluoNucAbo(E, n, i, S, gt, { ...C, g: 0, r: 0 }, false), [[.7 * CONF.bGlow, 2.5], [.5 * CONF.bGlow, 7], [.3 * CONF.bGlow, 18]]);
@@ -191,8 +191,8 @@ function drawFluoLook(S, gt, C) {
   const blit = (a, blur = 0) => {
     const half = blur > 3;
     main.save(); main.setTransform(1, 0, 0, 1, 0, 0); main.globalCompositeOperation = 'lighter'; main.globalAlpha = A * a;
-    main.filter = blur ? `blur(${(blur * px).toFixed(1)}px)` : 'none';
-    if (half) main.drawImage(HC, 0, 0, ew, eh); else main.drawImage(E.canvas, 0, 0);
+    const f = blur ? `blur(${(blur * px).toFixed(1)}px)` : 'none';
+    if (half) drawFiltered(main, f, HC, 0, 0, HC.width, HC.height, 0, 0, ew, eh); else drawFiltered(main, f, E.canvas, 0, 0, ew, eh, 0, 0, ew, eh);
     main.restore();
   };
   if (neon) { blit(1); blit(.7, 2.2); blit(.65, 7); blit(.45, 20); blit(.25, 48); }      // neon: hot halo, wide glow

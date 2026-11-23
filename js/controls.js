@@ -1,69 +1,53 @@
 'use strict';
-// On-screen control bar (play/pause, scrub, previous/next, light/dark, fullscreen).
-// Connects the buttons in index.html to the playback functions in app.js.
+// On-screen control bar: previous / play-pause / next, the liquid-glass scrub bar (scrub.js), the step counter, replay and
+// fullscreen. Connects the buttons in index.html to the playback functions in app.js. Dark only (no theme toggle).
 (function () {
   const scrubMax = () => (STEPS[step].dur || 30) + 1;   // seconds; each step's settle time + a little
+  const $ = id => document.getElementById(id);
+  const el = { prev: $('ctlPrev'), play: $('ctlPlay'), next: $('ctlNext'), replay: $('ctlReplay'), full: $('ctlFull'), stepLabel: $('stepLabel') };
 
-  const el = {
-    prev: document.getElementById('ctlPrev'),
-    play: document.getElementById('ctlPlay'),
-    next: document.getElementById('ctlNext'),
-    replay: document.getElementById('ctlReplay'),
-    scrub: document.getElementById('ctlScrub'),
-    stepLabel: document.getElementById('stepLabel'),
-    theme: document.getElementById('ctlTheme'),
-  };
+  const scrub = LiquidScrub($('ctlScrub'), { onInput: v => scrubTo(v * scrubMax()) });
 
-  el.scrub.max = scrubMax();
-  el.scrub.step = 0.02;
-
-  function refreshStepLabel() {
-    el.stepLabel.textContent = `${step + 1} / ${STEPS.length}`;
-  }
+  const refreshStepLabel = () => { el.stepLabel.textContent = `${step + 1} / ${STEPS.length}`; };
   function refreshPlayIcon() {
     el.play.querySelector('.icon-play').style.display = paused ? '' : 'none';
     el.play.querySelector('.icon-pause').style.display = paused ? 'none' : '';
     el.play.setAttribute('aria-label', paused ? 'Play' : 'Pause');
   }
-  function refreshThemeIcon() {
-    const light = THEME.light;
-    el.theme.querySelector('.icon-sun').style.display = light ? '' : 'none';
-    el.theme.querySelector('.icon-moon').style.display = light ? 'none' : '';
-    el.theme.setAttribute('aria-label', light ? 'Switch to dark' : 'Switch to light');
+  function refreshFullIcon() {
+    const fs = !!document.fullscreenElement;
+    el.full.querySelector('.icon-full').style.display = fs ? 'none' : '';
+    el.full.querySelector('.icon-exit').style.display = fs ? '' : 'none';
+    el.full.setAttribute('aria-label', fs ? 'Exit full screen' : 'Full screen');
   }
 
-  // app.js calls these hooks on state changes so the UI stays in sync
-  // whether it was a button, a key, or a URL hash jump that caused them.
-  onStepChange = () => { refreshStepLabel(); el.scrub.max = scrubMax(); el.scrub.value = 0; };
+  // app.js calls these hooks on state changes, whatever caused them (button, key, URL hash)
+  onStepChange = () => { refreshStepLabel(); scrub.set(0); };
   onPlayStateChange = refreshPlayIcon;
-  onThemeChange = refreshThemeIcon;
 
   el.prev.addEventListener('click', () => go(step - 1));
   el.next.addEventListener('click', () => go(step + 1));
+  el.play.addEventListener('click', () => setPaused(!paused));
   el.replay.addEventListener('click', () => {
-    stepStart = performance.now(); prevStep = step; pauseT = 0; el.scrub.value = 0;
+    stepStart = performance.now(); prevStep = step; pauseT = 0; scrub.set(0);
     if (paused) { pauseGT = performance.now() / 1000; render(step, 0, pauseGT); }
   });
-  el.play.addEventListener('click', () => setPaused(!paused));
-  el.theme.addEventListener('click', () => { setThemeMode(THEME.light ? 'dark' : 'light'); THEME.light = THEME.mode === 'light'; refreshThemeIcon(); });
+  el.full.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen());
+  document.addEventListener('fullscreenchange', refreshFullIcon);
 
-  el.scrub.addEventListener('input', () => scrubTo(parseFloat(el.scrub.value)));
-
-  // keep the scrub head following playback while not being dragged
-  let dragging = false;
-  el.scrub.addEventListener('pointerdown', () => dragging = true);
-  addEventListener('pointerup', () => dragging = false);
-  setInterval(() => {
-    if (dragging) return;
+  // the scrub head follows playback (one cheap style update a frame)
+  (function follow() {
     const t = paused ? pauseT : (performance.now() - stepStart) / 1000;
-    el.scrub.value = Math.min(scrubMax(), t);
-  }, 80);
+    scrub.set(Math.min(1, t / scrubMax()));
+    requestAnimationFrame(follow);
+  })();
 
-  // (the texture button is gone: each element's look is set on the elements page, gallery.html)
+  // fullscreen: the bar fades out while the pointer rests
+  let idle = 0; const wake = () => { document.body.classList.remove('idle'); clearTimeout(idle); idle = setTimeout(() => { if (document.fullscreenElement && !scrub.dragging()) document.body.classList.add('idle'); }, 2200); };
+  addEventListener('pointermove', wake); addEventListener('keydown', wake);
 
-  // click on the canvas advances
+  // a click on the stage advances
   cv.addEventListener('click', () => go(step + 1));
-  addEventListener('keydown', e => { if (e.key === 'l' || e.key === 'L') refreshThemeIcon(); });
 
-  refreshStepLabel(); refreshPlayIcon(); refreshThemeIcon();
+  refreshStepLabel(); refreshPlayIcon(); refreshFullIcon();
 })();

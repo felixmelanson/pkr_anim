@@ -76,8 +76,7 @@ function texPaint(fn, o = {}) {
   x0 = Math.max(0, Math.floor(x0)); y0 = Math.max(0, Math.floor(y0)); x1 = Math.min(cvm.width, Math.ceil(x1)); y1 = Math.min(cvm.height, Math.ceil(y1));
   if (x1 - x0 < 1 || y1 - y0 < 1) return;                              // off the canvas: nothing to see
   // always worked at about 4K: below that the area is drawn at 2× and the result scaled down (1 px lines stair-step otherwise)
-  // GPU (live) path: supersample only up to the 1.5× the rims need, not a flat 2×
-  const px0 = o.px ?? cvm.width / W, ss = px0 < 1.5 ? (TEX_GPU() ? 1.5 / px0 : 2) : 1, px = px0 * ss, rw = x1 - x0, rh = y1 - y0, w = Math.ceil(rw * ss), h = Math.ceil(rh * ss);
+  const px0 = o.px ?? cvm.width / W, ss = px0 < 1.5 ? 2 : 1, px = px0 * ss, rw = x1 - x0, rh = y1 - y0, w = Math.ceil(rw * ss), h = Math.ceil(rh * ss);
   const lc = texCanvas('src', w, h), mt = main.getTransform();
   lc.setTransform(mt.a * ss, mt.b * ss, mt.c * ss, mt.d * ss, (mt.e - x0) * ss, (mt.f - y0) * ss);
   // text (labels) skips the effect: every fillText / strokeText is redrawn, with the same state, on a separate layer laid on top
@@ -97,8 +96,7 @@ function texPaint(fn, o = {}) {
   const out = texCanvas('full', w, h);
   if (look > 0) (gpu ? composeGL(out, TXL.src, P, px, w, h) : compose(out, 'body', 'line', P, px, w, h)); else out.drawImage(TXL.src, 0, 0, w, h, 0, 0, w, h);
   if (nuc) {                                                         // nuclei: plain clay, dimmed a little toward the textured body
-    if (look > 0) out.filter = `brightness(${Math.min(1, P.mix * 1.6).toFixed(2)})`;
-    out.drawImage(TXL.nsep, 0, 0, w, h, 0, 0, w, h); out.filter = 'none';
+    drawFiltered(out, look > 0 ? `brightness(${Math.min(1, P.mix * 1.6).toFixed(2)})` : 'none', TXL.nsep, 0, 0, w, h, 0, 0, w, h);
   }
   if (sep) { if ((o.sepLook ?? look) > 0) (gpu ? composeGL(out, TXL.sep, Ps, px, w, h) : compose(out, 'sbody', 'sline', Ps, px, w, h)); else out.drawImage(TXL.sep, 0, 0, w, h, 0, 0, w, h); }   // laid over the cells
   out.drawImage(TXL.text, 0, 0, w, h, 0, 0, w, h);
@@ -121,14 +119,12 @@ function composeGL(c, src, P, px, w, h) {
   const lines = TEXGL.texLayerGL(src, w, h, P, px), tmp = texCanvas('glline', w, h);
   tmp.drawImage(lines, 0, 0, w, h, 0, 0, w, h);                                       // keep the lines: the body pass reuses the GL canvas
   c.drawImage(TEXGL.texBodyGL(w, h, P), 0, 0, w, h, 0, 0, w, h);
-  c.filter = P.mode !== 'rim' && P.soft > .05 ? `blur(${(P.soft * px / 2).toFixed(2)}px)` : 'none';
-  c.globalCompositeOperation = 'lighter'; c.drawImage(TXL.glline, 0, 0, w, h, 0, 0, w, h); c.filter = 'none'; c.globalCompositeOperation = 'source-over';
+  c.globalCompositeOperation = 'lighter'; drawFiltered(c, P.mode !== 'rim' && P.soft > .05 ? `blur(${(P.soft * px / 2).toFixed(2)}px)` : 'none', TXL.glline, 0, 0, w, h, 0, 0, w, h); c.globalCompositeOperation = 'source-over';
 }
 function compose(c, bn, ln, P, px, w, h) {
   c.drawImage(TXL[bn], 0, 0, w, h, 0, 0, w, h);
-  c.filter = P.mode !== 'rim' && P.soft > .05 ? `blur(${(P.soft * px / 2).toFixed(2)}px)` : 'none';      // a hair of softening so the 1 px lines do not stair-step
   c.globalCompositeOperation = 'lighter';                        // 0.4 × original + 0.6 × edges: the edge layer adds, it does not cover
-  c.drawImage(TXL[ln], 0, 0, w, h, 0, 0, w, h); c.filter = 'none'; c.globalCompositeOperation = 'source-over';
+  drawFiltered(c, P.mode !== 'rim' && P.soft > .05 ? `blur(${(P.soft * px / 2).toFixed(2)}px)` : 'none', TXL[ln], 0, 0, w, h, 0, 0, w, h); c.globalCompositeOperation = 'source-over';      // a hair of softening so the 1 px lines do not stair-step
 }
 /* One element of a scene drawn through its own look (texElLook(id)): fn(c) draws it into c, centred near (cx, cy) in c's
    current coordinates, within radius r. Only that area is processed, so a frame costs what its textured elements cover.
@@ -287,7 +283,7 @@ function gpuBlur(F, w, h, sigma) {
   for (let i = 0, j = 0; i < N; i++, j += 4) { const v = Math.max(0, Math.min(1, F[i])) * 65535 | 0; d[j] = v >> 8; d[j + 1] = v & 255; d[j + 2] = 0; d[j + 3] = 255; }
   c.putImageData(img, 0, 0);
   // the blur is linear, so blurring the high and low bytes as two channels and recombining them gives the blurred value
-  const o = texCanvas('gblur2', w, h); o.filter = `blur(${sigma.toFixed(2)}px)`; o.drawImage(TXL.gblur, 0, 0, w, h, 0, 0, w, h); o.filter = 'none';
+  const o = texCanvas('gblur2', w, h); drawFiltered(o, `blur(${sigma.toFixed(2)}px)`, TXL.gblur, 0, 0, w, h, 0, 0, w, h);
   const r = o.getImageData(0, 0, w, h).data;
   for (let i = 0, j = 0; i < N; i++, j += 4) F[i] = (r[j] * 256 + r[j + 1]) / 65535;
 }

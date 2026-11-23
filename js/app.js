@@ -18,15 +18,25 @@ setClayMax(1.6);     // cells that fill the frame (scene 1, the push-in) keep th
 // tools/render.mjs --crop trims clips to exactly this band.
 const CROP = FULL ? { y: 0, h: 1080 } : { y: 150, h: 800 };      // full-frame stage by default (culture.js); ?full=0 restores the 800 px band
 let SCL = 1, DPR = 1;
+// Viewer layout: the stage as wide as the window allows, a dock row under it (footer credit · controls · footer links); the dock
+// row uses the in-animation footer's left / right margin and type, so it reads as the same footer. On narrow windows the credit
+// and links drop under the controls. Fullscreen: the stage alone, centred, with the controls over it. (--stage-*, --dock-*: CSS)
 function resize() {
   DPR = RENDER_MODE ? 1 : Math.min(2, window.devicePixelRatio || 1);
-  const w = innerWidth, h = innerHeight;
-  SCL = RENDER_MODE ? (+QS.get('scale') || 1) : Math.min(w / W, h / H);
-  const cw = W * SCL, ch = H * SCL;
+  const w = innerWidth, h = innerHeight, fs = !RENDER_MODE && !!document.fullscreenElement, narrow = w < 1000;
+  const dockH = RENDER_MODE || fs ? 0 : narrow ? 104 : 66;
+  SCL = RENDER_MODE ? (+QS.get('scale') || 1) : Math.min(w / W, (h - dockH) / H);
+  const cw = W * SCL, ch = H * SCL, left = (w - cw) / 2, room = Math.min(h - ch, dockH + 60);      // room: the stage and its dock are centred together
+  const top = RENDER_MODE || fs ? (h - ch) / 2 : Math.max(0, (h - ch - room) / 2);
   cv.style.width = cw + 'px'; cv.style.height = ch + 'px';
-  cv.style.left = ((w - cw) / 2) + 'px'; cv.style.top = ((h - ch) / 2) + 'px';
+  cv.style.left = left + 'px'; cv.style.top = top + 'px';
   cv.width = Math.round(cw * DPR); cv.height = Math.round(ch * DPR);
+  const R = document.documentElement.style, set = (k, v) => R.setProperty(k, v);
+  set('--stage-left', left + 'px'); set('--stage-top', top + 'px'); set('--stage-w', cw + 'px'); set('--stage-h', ch + 'px');
+  set('--dock-top', (top + ch) + 'px'); set('--dock-h', room + 'px'); set('--foot-x', (TITLE_X * SCL) + 'px'); set('--foot-fs', Math.max(12, 19 * SCL) + 'px');
+  document.body.classList.toggle('is-fullscreen', fs); document.body.classList.toggle('narrow', narrow);
 }
+document.addEventListener('fullscreenchange', resize);
 addEventListener('resize', resize); resize();
 
 /* One entry per slide / video clip.
@@ -117,12 +127,13 @@ function go(k) {
   history.replaceState(null, '', location.search + '#' + (step + 1));
   onStepChange();
 }
+let UI_MODAL = false;      // a panel is open (ui-panels.js): the stage keys are off
 addEventListener('keydown', e => {
+  if (UI_MODAL) return;
   if (['ArrowRight', ' ', 'PageDown', 'Enter'].includes(e.key)) { e.preventDefault(); go(step + 1); }
   else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) { e.preventDefault(); go(step - 1); }
   else if (e.key === 'r' || e.key === 'R') { stepStart = performance.now(); prevStep = step; pauseT = 0; }
   else if (e.key === 'f' || e.key === 'F') { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
-  else if (e.key === 'l' || e.key === 'L') { setThemeMode(THEME.light ? 'dark' : 'light'); onThemeChange(); }
   else if (e.key === 'i' || e.key === 'I') { RIM.light = !RIM.light; }
   else if (e.key === 'c' || e.key === 'C') { CAPTIONS = !CAPTIONS; }
   else if (e.key === 'p' || e.key === 'P') { setPaused(!paused); }
@@ -175,7 +186,7 @@ function render(k, t, gt) {
   TEX_SKIP = !RENDER_MODE && !paused && !TEX_WHILE_PLAYING;
   texFrameTick((!RENDER_MODE && !paused && !frozen) || window.__texPlay === true);      // __texPlay: benchmarks      // live playback may reuse a cell's texture for a frame or two (texture.js)
   paintStep(k, t, gt);
-  if (k > 0 && prevStep === k - 1 && !STEPDEF[STEPS[k].fn].noXfade) { const f = 1 - seg(t, 0, XFADE); if (f > 0) previousFinal(k, gt, f); }
+  if (k > 0 && prevStep === k - 1) { if (!STEPDEF[STEPS[k].fn].noXfade) { const f = 1 - seg(t, 0, XFADE); if (f > 0) previousFinal(k, gt, f); } }      // noXfade steps open on the last frame already: no dip to black
   else if (!RENDER_MODE && prevStep !== k) { const f = 1 - seg(t, 0, .5); if (f > 0) { ctx.setTransform(SCL * DPR, 0, 0, SCL * DPR, 0, 0); ctx.fillStyle = rgb(COL.bg, f); ctx.fillRect(0, 0, W, H); } }
 }
 
@@ -199,10 +210,14 @@ function onStepChange() {}
 function onPlayStateChange() {}
 function onThemeChange() {}
 
+let STAGE_FROZEN = false, PAUSE_KEY = '';      // STAGE_FROZEN: a panel is open over the stage (ui-panels.js): nothing is redrawn
 function frame(now) {
-  if (!frozen) {
-    if (paused) render(step, pauseT, pauseGT);
-    else render(step, (now - stepStart) / 1000, now / 1000);
+  if (!frozen && !STAGE_FROZEN) {
+    if (paused) {      // paused: draw only when something changed (step, scrub position, size), not the same picture every frame
+      const key = `${step}|${pauseT}|${pauseGT}|${cv.width}x${cv.height}|${prevStep}`;
+      if (key !== PAUSE_KEY) { PAUSE_KEY = key; render(step, pauseT, pauseGT); }
+    }
+    else { PAUSE_KEY = ''; render(step, (now - stepStart) / 1000, now / 1000); }
   }
   requestAnimationFrame(frame);
 }

@@ -34,7 +34,7 @@ function LiquidScrub(el, o = {}) {
   const root = el.querySelector('.lg-root'), th = el.querySelector('.lg-thumb'), tr = el.querySelector('.lg-track'), fi = el.querySelector('.lg-fill');
   const clone = el.querySelector('.lg-clone'), ci = el.querySelector('.lg-clone-inner'), inner = el.querySelector('.lg-thumb-inner'), dmap = el.querySelector('.lg-dmap');
 
-  // ---- the pen's maths, unchanged ----
+  // the pen's maths, unchanged
   const SurfaceEquations = { convex_squircle: x => Math.pow(1 - Math.pow(1 - x, 4), 1 / 4) };
   class Spring {
     constructor(v, s = 300, d = 20) { this.value = v; this.target = v; this.velocity = 0; this.stiffness = s; this.damping = d; }

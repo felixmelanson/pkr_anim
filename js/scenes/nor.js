@@ -67,7 +67,7 @@ function dissociation(R, a, p1, p2, p3) {
   const X = v => px + (72 - v) / (72 - 40) * pw, Y = v => y0 - (v - .5) / (2.3 - .5) * ph * p2;        // x runs from good memory (left) to no preference (right)
   ctx.save(); ctx.globalAlpha *= a;
   txt('one manipulation, two readouts', R.x + 4, R.y + 24, { size: 23, w: 600 });
-  txt('group means ± SEM · memory: Fig. 4A, 3B · IRS-1pSer: Fig. 5H, 5A', R.x + 4, R.y + 50, { size: 16, w: 500, col: COL.dim });
+  txt('group means ± SEM, memory: Fig. 4A, 3B, IRS-1pSer: Fig. 5H, 5A', R.x + 4, R.y + 50, { size: 16, w: 500, col: COL.dim });
   // x axis
   ctx.strokeStyle = rgb(COL.ink, .85); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(px, y0); ctx.lineTo(px + pw, y0); ctx.stroke();
   for (const v of [70, 60, 50, 40]) { ctx.beginPath(); ctx.moveTo(X(v), y0); ctx.lineTo(X(v), y0 + 6); ctx.stroke(); txt(String(v), X(v), y0 + 24, { size: 17, w: 500, col: COL.dim, align: 'center' }); }
@@ -111,8 +111,8 @@ function heroPanels(a) {
   ctx.save(); ctx.globalAlpha *= a; ctx.translate(W / 2, y + h / 2); ctx.scale(k, k); ctx.translate(-W / 2, -(y + h / 2));
   card(x0 - 22, y - 22, w4 + 44, h + 44, 1, { fill: [255, 255, 255], r: 12 }); card(x0 + w4 + gap - 22, y - 22, w5 + 44, h + 44, 1, { fill: [255, 255, 255], r: 12 });
   claySuspend(() => { ctx.drawImage(A4, x0, y, w4, h); ctx.drawImage(A5, x0 + w4 + gap, y, w5, h); });
-  txt('memory: impaired', x0 + w4 / 2, y + h + 66, { size: 28, w: 600, align: 'center' }); txt('Fig. 4A · n = 10 mice per group', x0 + w4 / 2, y + h + 98, { size: 20, w: 500, col: COL.dim, align: 'center' });
-  txt('IRS-1pSer636: unchanged', x0 + w4 + gap + w5 / 2, y + h + 66, { size: 28, w: 600, align: 'center' }); txt('Fig. 5E-H · culture (n = 3) and mice (n = 7)', x0 + w4 + gap + w5 / 2, y + h + 98, { size: 20, w: 500, col: COL.dim, align: 'center' });
+  txt('memory: impaired', x0 + w4 / 2, y + h + 66, { size: 28, w: 600, align: 'center' }); txt('Fig. 4A, n = 10 mice per group', x0 + w4 / 2, y + h + 98, { size: 20, w: 500, col: COL.dim, align: 'center' });
+  txt('IRS-1pSer636: unchanged', x0 + w4 + gap + w5 / 2, y + h + 66, { size: 28, w: 600, align: 'center' }); txt('Fig. 5E-H, culture (n = 3) and mice (n = 7)', x0 + w4 + gap + w5 / 2, y + h + 98, { size: 20, w: 500, col: COL.dim, align: 'center' });
   txt('same drug', x0 + w4 + gap / 2, y + h / 2, { size: 20, w: 600, col: COL.dim, align: 'center', base: 'middle' });
   txt('original panels, Lourenco et al., 2013', W / 2, y - 40, { size: 20, w: 500, col: COL.dim, align: 'center' });
   ctx.restore();

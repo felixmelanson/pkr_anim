@@ -27,7 +27,7 @@ const mvs = (o, targets, k) => { for (const key in targets) mv(o, key, targets[k
 const STEPDEF = {};
 const BR_Z = 1.8, BR_CAM = [442, 452], COLD_CAM = [HEROXY[0] + 34, HEROXY[1] - 46];   // bridge starts wide on the astrocyte, ends exactly on scene 1's opening frame
 
-/* ---- 0a / 0b. Bridge from the astrocyte talk (Liddelow et al. 2017): TNF-α is the shared messenger ----
+/* 0a / 0b. Bridge from the astrocyte talk (Liddelow et al. 2017): TNF-α is the shared messenger
    0a  the previous talk in one beat: microglia → IL-1α, TNF-α, C1q → astrocyte turns A1 → the retinal ganglion cell degrades. Stops there.
    0b  the A1 change runs backwards while IL-1α and C1q go; then the camera moves, the astrocyte becomes a dashed outline,
        and TNF-α alone travels on to the pyramidal neuron. */
@@ -90,7 +90,7 @@ function bridgeQuestion(a) {      // the question that closes the bridge (S2); i
   glassTag('TNF-α at the hippocampal pyramidal neuron', W / 2, LAY.field.y + LAY.field.h - 30, { size: 28, w: 600, a, parts: [{ text: 'TNF-α', col: COL.tnf }, { text: ' at the hippocampal ' }, { text: 'pyramidal neuron', col: TP.neuron.rim }] });
 }
 
-/* ---- 2. The anomaly ---- */
+/* 2. The anomaly */
 /* 2a: zoom out to the whole coverslip (full width), AβOs go in, bind a subset of neurons. Ends on that caption.
    2b: the caption goes; phospho-PKR rises in every neuron, bound or not; the same cells as immunofluorescence.
    2b runs on 2a's clock (tt = t + ANOM_T): the two were one scene, cut where the binding caption is up. */
@@ -160,8 +160,10 @@ STEPDEF.anomaly = {
 };
 /* S3b → S4C. They run 17.9 s where the old S4A + S4B ran 11.3 s; so that S5 onward stays frame-identical, the cells' own clock
    (gt − S.lost) runs slower through these four clips (ANOM_SLOW), S4C's gtDur takes up the difference, and S5 gives the time back. */
-const ANOM_D = { hold: 2.0, a: 6.4, b: 4.4, c: 5.1, old: 11.3 };
-const ANOM_EXTRA = ANOM_D.hold + ANOM_D.a + ANOM_D.b + ANOM_D.c - ANOM_D.old, ANOM_SLOW = ANOM_EXTRA / (ANOM_D.hold + ANOM_D.a + ANOM_D.b + ANOM_D.c);
+// fig: S4C's extra hold on Fig. 1H, with the cells' clock stopped (it is a fixed-cell image), also given back in S5
+const ANOM_D = { hold: 2.0, a: 6.4, b: 4.4, c: 5.1, old: 11.3, fig: 4.0 };
+const ANOM_RUN = ANOM_D.hold + ANOM_D.a + ANOM_D.b + ANOM_D.c, ANOM_SLOW = (ANOM_RUN - ANOM_D.old) / ANOM_RUN;
+const ANOM_EXTRA = ANOM_RUN - ANOM_D.old + ANOM_D.fig;
 const slowCells = (S, t) => { S.lost += t * ANOM_SLOW; };
 // S3b: hold; the panel changes to the AD-brain finding (arrows stay)
 STEPDEF.anomalyHold = { noXfade: true, apply: slowCells, over(S, t) { anomCaption(S, 'bind', 'ad', A(t, .2, 1.4), 1, 1); } };
@@ -181,15 +183,29 @@ STEPDEF.anomalyC = {
 STEPDEF.anomalyD = {
   noXfade: true,
   apply(S, t) {
-    slowCells(S, t); const tt = t + 14.2;
+    slowCells(S, Math.min(t, ANOM_D.c)); S.lost += Math.max(0, t - ANOM_D.c); const tt = t + 14.2;
     const c = S.conf; c.a = A(tt, 14.6, 15.4); c.b = A(tt, 15.0, 16.6); c.r = A(tt, 15.3, 17.0); c.g = A(tt, 16.3, 18.0); c.arrow = 0;
     c.cover = .75 * A(tt, 14.8, 16.9) + .25 * c.g;
-    c.box = A(tt, 18.0, 18.9);                            // the clip ends on the immunofluorescence view with the empty glass panel up
+    c.box = A(tt, 18.0, 18.9);                            // the glass panel comes up over the immunofluorescence view, then Fig. 1H on it
   },
-  over(S, t) { anomCaption(S, 'pkr', 'pkr', 0, 1 - S.conf.a); },
+  over(S, t) { anomCaption(S, 'pkr', 'pkr', 0, 1 - S.conf.a); fig1hCard(A(t, 4.5, 5.4), A(t, 4.9, 5.7)); },
 };
+// Fig. 1H on the big glass panel (S4C), the conditions above it, the arrow's meaning and the panel number below, all centred
+// on the panel. a: the figure; ta: the text
+const F1H = { w: 1200, title: 37, foot: 36, gapT: 22, gapB: 24, titleDy: 8 };      // titleDy: the title sits a little lower than its slot (Felix: it read too high)
+function fig1hCard(a, ta = a) {
+  const im = IMG.fig1hfull; if (a <= .004 || !im || !im.naturalWidth) return;
+  const C = F1H, w = C.w, h = im.naturalHeight * w / im.naturalWidth, total = C.title + C.gapT + h + C.gapB + C.foot;
+  const x = W / 2 - w / 2, y0 = (FULL ? H / 2 : 512) - total / 2, iy = y0 + C.title + C.gapT, fy = iy + h + C.gapB + C.foot / 2;
+  ctx.save(); ctx.globalAlpha *= a; claySuspend(() => ctx.drawImage(im, x, iy, w, h)); ctx.restore();
+  if (ta <= .004) return;
+  const col = mix(COL.text, COL.dim, .35), f = { w: 500, col, base: 'middle', a: ta };
+  txt('Cultured rat hippocampal neurons (18-21 DIV), 500 nM AβOs, 3h', x, y0 + C.title / 2 + C.titleDy, { ...f, size: C.title });
+  txt('Arrow = elevated phospho-PKR without bound oligomer', x, fy, { ...f, size: C.foot });
+  txt('Fig. 1H', x + w, fy, { ...f, size: C.foot, w: 700, align: 'right' });
+}
 
-/* ---- 3. The messenger, measured ---- */
+/* 3. The messenger, measured */
 const TNF_CH = () => ({ ylab: 'TNF-α (pg/mL)', ymax: 70, ticks: [0, 20, 40, 60], dec: 0,
   bars: DATA.TNF_MEDIUM.bars.map((b, i) => ({ ...b, col: i ? PC.tnf : mix(PC.tnf, PC.gray, .6), colA: 1 })) });
 const TNF_BASE = DATA.TNF_MEDIUM.bars[0].mean / DATA.TNF_MEDIUM.bars[1].mean;
@@ -213,6 +229,7 @@ STEPDEF.messenger = {
     for (let i = 0; i < 3; i++) { const p = toScreen(S, ...mXY(S, i)), ra = hold(t, 3.2, 4.0, 8.2, 9.0); if (ra > 0) { const pu = (gt * .6 + i * .33) % 1; ctx.save(); ctx.globalAlpha *= ra * (1 - pu); ctx.strokeStyle = rgb(PC.tnf); ctx.lineWidth = 2.5; ctx.beginPath(); ctx.arc(p[0], p[1], (22 + pu * 34) * S.cam.z, 0, TAU); ctx.stroke(); ctx.restore(); } }
     const GP = MS_BOX(k), ga = A(t, .1, .8);
     glassPanel(GP.x, GP.y, GP.w, GP.h, 14, 1);      // over the microglia's TNF-α rings, not under them
+    if (STEPS.some(s => s.fn === 'anomalyD')) { const fa = 1 - A(t0, 0, .8); fig1hCard(fa); }      // S4C's Fig. 1H leaves before the panel narrows
     panelTitle(GP, [['TNF-α', COL.tnf], [' in the medium']], '', ga, true, 38, 12);
     const fb = GP.y + GP.h - 28, cy0 = GP.y + 104;      // methods footnote: last baseline
     barChart({ x: GP.x + 22, y: cy0, w: GP.w - 44, h: fb - figFootH(2) - 26 - cy0 }, TNF_CH(), { a: ga, grow: i => i ? b1 : veh, barA: i => i ? b1A : 1, sem: A(t, 8.4, 9.0), star: A(t, 9.2, 9.7), val: true, lab: i => i ? A(t, 2.8, 3.3) : 1, labDy: 14, labSize: 25, ylabSize: 25, figTag: 'Fig. 2H', figTagSize: 21 });
@@ -227,7 +244,7 @@ STEPDEF.messenger = {
   },
 };
 
-/* ---- 4. The control that earns the architecture ----
+/* 4. The control that earns the architecture
    Two variants of the same step (STEPS[4].fn picks one; V toggles, ?s4=split loads the old one):
      controlDish  experimental: the top-down field irises into one petri dish, the dish divides into two, both tilt, and the
                   experiment runs in each (left AβOs, right infliximab + AβOs);
@@ -403,7 +420,7 @@ STEPDEF.controlBackSplit = {
   over(S, t, gt) { const o = 1 - A(t, .3, 1.1); splitVerdicts(S, [o, o]); stackCharts([o, o]); tissueVerdict(t, 4.2); },
 };
 
-/* ---- 5. Into the neuron, and which kinase ----
+/* 5. Into the neuron, and which kinase
    One continuous exponential zoom, no morph. The camera locks onto the upper edge of the dendrite on the right of the hero's
    soma (cam.track), levels it (cam.rotK, a few degrees) and carries it up to the board's membrane line (cam.ay). It keeps
    going until the frame is black above that line and the neuron's one colour below it; only then does the board take over
@@ -420,7 +437,7 @@ const EIFK_CH = () => ({ ylab: 'eIF2α-P (a.u.)', fig: '', ymax: 3.2, ticks: [0,
 const dpTitle = (s, a) => { if (a > .004) wrapTxt(s, PANEL.x + 38, PANEL.y + 58, PANEL.w - 70, { size: 31, w: 600, a }, 38); };
 const dpChart = (top = 272, bottom = 132) => ({ x: PANEL.x + 26, y: PANEL.y + top - 170, w: PANEL.w - 52, h: PANEL.h - (top - 170) - bottom });
 const dpTakeaway = (s, a, lines = 2) => { if (a > .004) wrapTxt(s, PANEL.x + 38, PANEL.y + PANEL.h - 22 - (lines - 1) * 33, PANEL.w - 70, { size: 25, w: 600, a }, 33); };
-/* ---- 5a. In vivo models ----
+/* 5a. In vivo models
    Two darkened glass squares (panelSq: left edge on the legend's left edge, right edge on its right edge): Cynomolgus monkey on
    the left, mouse models on the right. Felix's pictures and wording; the facts are Lourenco 2013 (mice: Figs. 3, 5 and APP/PS1;
    monkeys: Figs. 1L-O, 6F-H). */
@@ -491,7 +508,7 @@ STEPDEF.vivo = {          // the push-in: from the culture into the hero neuron'
   },
   over(S, t, gt) { },
 };
-/* ---- 5b. Which kinase ----
+/* 5b. Which kinase
    eIF2α arrives (resting), the other three eIF2α kinases appear left of PKR under one bracket, the data panel (a square, right
    edge on the legend's right edge) brings Fig. 1K, the other kinases step back, PKR → PKR-P, the arrow to eIF2α draws solid,
    eIF2α → eIF2α-P. */
@@ -524,13 +541,13 @@ STEPDEF.kinase = {
     kinaseChart(S, t);
   },
 };
-/* ---- S9B: what eIF2α does (the schematic on the square panel) ----
+/* S9B: what eIF2α does (the schematic on the square panel)
    Plays once over the clip (no loop). Top, normal: eIF2 brings the initiator tRNA (cloverleaf, anticodon on the bottom lobe) to
-   the start codon on the small subunit, lets go and goes back to the recharger; the large subunit joins and the protein (a bead
-   chain) comes out. Bottom, eIF2α-P (appears later, stays still): phosphorylated eIF2 stuck on the recharger, an empty small
+   the start codon on the small subunit, lets go and goes back to the recharger; the large subunit joins (no protein bead chain any
+   more: cut to save time). Bottom, eIF2α-P (appears later, stays still): phosphorylated eIF2 stuck on the recharger, an empty small
    subunit, nothing starts. Flat illustration style for the ribosome / tRNA / mRNA (fortune-cookie ribosome, as Felix's
    reference); the α subunit is labelled. EIFS: the beats, on the S9B clock. */
-const EIFS = { dur: 11.2, panel: [.2, 1.0], in: [.6, 1.4], go: [1.4, 2.9], let: [3.0, 3.4], back: [3.3, 4.7], join: [3.5, 4.3], prot: [4.3, 7.2], out: [7.4, 8.4], swapIn: [8.6, 9.6] };      // out / swapIn: the normal scene and its title fade out, then the eIF2α-P scene and its title fade in (one after the other)
+const EIFS = { dur: 8.8, panel: [.2, 1.0], in: [.6, 1.4], go: [1.4, 2.9], let: [3.0, 3.4], back: [3.3, 4.7], join: [3.5, 4.3], out: [5.0, 6.0], swapIn: [6.2, 7.2] };      // out / swapIn: the normal scene and its title fade out, then the eIF2α-P scene and its title fade in (one after the other)
 const COOKIE = { lg: [[240, 203, 128], [196, 138, 60]], sm: [[247, 218, 158], [214, 165, 88]], line: [122, 82, 32] };
 const BASE_COL = { A: [255, 112, 64], U: [255, 214, 110], G: [206, 92, 206], C: [156, 180, 52] };
 const MRNA_SEQ = 'GCCACCAUGGCUAAGUUCGGAUCC', MRNA_AUG = 6;      // the start codon's first base
@@ -616,18 +633,18 @@ function eifSchematicBody(R, t, gt) {
   if (sw > 0) { const o = { ...tf, a: sw }, w1 = txtW('eIF2α-P', o); txt('eIF2α-P', R.x + 38, R.y + 58, { ...o, col: COL.phos }); txt(': no protein synthesis', R.x + 38 + w1, R.y + 58, o); }
   const DX = 44, RK = .88, my = R.y + R.h - 140, rx = R.x + R.w * .52 + DX, hx = R.x + R.w * .15 + DX, hy = my - 30, bx0 = rx - 176, bx1 = R.x + R.w - 150 + DX;      // mRNA, ribosome (RK: its scale), recharger; DX: all of it nudged right
   const scene1 = () => {
-    const go = ease(seg(t, ...T.go)), let_ = ease(seg(t, ...T.let)), back = ease(seg(t, ...T.back)), join = ease(seg(t, ...T.join)), prot = seg(t, ...T.prot);
+    const go = ease(seg(t, ...T.go)), let_ = ease(seg(t, ...T.let)), back = ease(seg(t, ...T.back)), join = ease(seg(t, ...T.join));
     const ax = bx0 + 16 + (MRNA_AUG + 1) * 15, dockY = my - 26, sx = hx + 150, sy = my - 30;
     const tx = lerp(sx, ax, go), ty = lerp(sy, dockY, go) - Math.sin(go * Math.PI) * 30;
     const e0x = tx - 100, e0y = ty - 66, homeX = hx, homeY = hy - 50;
     const ex = t < T.let[0] ? e0x : lerp(lerp(ax - 100, ax - 130, let_), homeX, back), ey = t < T.let[0] ? e0y : lerp(lerp(dockY - 66, dockY - 96, let_), homeY, back) - Math.sin(back * Math.PI) * 26;
     flat(() => { if (join > .004) fadeLayer(join, () => ribLarge(rx, my - 8 - 50 * (1 - join), RK)); ribSmall(rx, my + 6, RK); mRNA(bx0, bx1, my); });
     gRECH(hx, hy + 30); L('recharger', hx, hy + 96);
-    flat(() => { tRNA(tx, ty, 1); protein(rx + 102, my - 85, prot * 15); });
+    flat(() => tRNA(tx, ty, 1));
     gEIF2(ex, ey, 1.15, 1);
     const lab0 = 1 - seg(t, T.go[0], T.go[0] + .4);
     L('eIF2α', ex, ey - 46, 1, { w: 600, col: COL.text }); L('tRNA', sx + 66, sy - 110, lab0);      // eIF2α named above the complex, all the way
-    L('mRNA', bx1 - 18, my + 34); L('ribosome', rx, my + 76); L('protein', rx + 168, my - 160, seg(prot, .5, .75));
+    L('mRNA', bx1 - 18, my + 34); L('ribosome', rx, my + 76);
   };
   const scene2 = () => {      // the same place, frozen: eIF2α-P stuck on the recharger, an empty small subunit
     gRECH(hx, hy + 30, 1); gEIF2(hx + 4, hy - 20, 1.15, 1, 1); L('recharger trapped', hx + 8, hy + 96);
@@ -640,16 +657,21 @@ function eifSchematicBody(R, t, gt) {
 }
 // S9 in two clips. S9A: kinase's opening (eIF2α arrives, its first KIN_SPLIT s), then the schematic on the short panel (EIFS clock,
 // EIFS_OFF s in). S9B: the schematic clears, the kinases come in, a hold while the panel grows back up to full height (bottom
-// edge fixed), then the rest of kinase (Fig. 1K) on its own clock, KIN_HOLD s later.
-const KIN_SPLIT = 1.6, KIN_DUR = 16, EIFS_OFF = 1.2, KIN_HOLD = 1.2, KIN_HOLD_AT = 1.2, PANEL_GROW = [1.3, 2.9];
+// edge fixed), then the rest of kinase (Fig. 1K) on its own clock.
+// ?kin4=1: the longer cut with the four-kinase bracket and its hold (cut from the talk for time, kept for the website)
+const KIN4 = new URLSearchParams(location.search).get('kin4') === '1';
+const KIN_SPLIT = 1.6, KIN_DUR = 16, EIFS_OFF = 1.2, KIN_HOLD = 1.2, KIN_HOLD_AT = 1.2, PANEL_GROW = KIN4 ? [1.3, 2.9] : [.4, 2.0];
 STEPDEF.eifSchem = {
   apply(S, t) { STEPDEF.kinase.apply(S, Math.min(t, KIN_SPLIT)); S.panelK = A(t - EIFS_OFF, ...EIFS.panel); S.panelShort = 1; },
   over(S, t, gt) { STEPDEF.kinase.over(S, Math.min(t, KIN_SPLIT), gt); eifSchematic(S, panelRect(S), A(t - EIFS_OFF, ...EIFS.in), t - EIFS_OFF, gt); },
 };
-const kinTT = t => KIN_SPLIT + (t < KIN_HOLD_AT ? t : t < KIN_HOLD_AT + KIN_HOLD ? KIN_HOLD_AT : t - KIN_HOLD);      // S9B → kinase's clock, with the hold
-// S9B's own beats after Fig. 1K (kinase clock; S9B clip time + 0.4 after the hold): at 5.5 s the arrow into PKR goes solid as PKR is
-// phosphorylated, a second later the other three kinases fade, then PKR-P → eIF2α, then eIF2α-P (Felix: overlap them, shorter clip)
-const KIN_T_B = { ...KIN_T, pkr: [5.9, 7.1], solid: [5.9, 6.9], kinOut: [6.9, 7.9], arrow: [8.0, 9.0], eifP: [9.2, 10.4] };
+// S9B → kinase's clock (the hold was for the kinase bracket, now gone)
+const kinTT = t => KIN_SPLIT + (!KIN4 || t < KIN_HOLD_AT ? t : t < KIN_HOLD_AT + KIN_HOLD ? KIN_HOLD_AT : t - KIN_HOLD);
+// S9B's own beats (kinase clock = KIN_SPLIT + clip time, no hold): no four-kinase bracket any more (Felix: save time). The schematic
+// clears as the panel grows back to full height, Fig. 1K follows at once, then PKR goes solid and is phosphorylated, PKR-P → eIF2α,
+// eIF2α-P. kin / kinOut are pushed past the end so the bracket never draws.
+const KIN_T_B = KIN4 ? { ...KIN_T, pkr: [5.9, 7.1], solid: [5.9, 6.9], kinOut: [6.9, 7.9], arrow: [8.0, 9.0], eifP: [9.2, 10.4] }
+  : { ...KIN_T, kin: [98, 99], kinOut: [98, 99], chart: [3.5, 4.3], pkr: [5.8, 7.0], solid: [5.8, 6.8], arrow: [7.2, 8.2], eifP: [8.4, 9.6] };
 const withKinT = (T, fn) => { const keep = { ...KIN_T }; Object.assign(KIN_T, T); try { fn(); } finally { for (const k of Object.keys(KIN_T)) if (!(k in keep)) delete KIN_T[k]; Object.assign(KIN_T, keep); } };
 STEPDEF.kinaseC = {
   noXfade: true,
@@ -689,7 +711,7 @@ function kinaseChart(S, t) {      // Fig. 1K
   sqChart(S, 'PKR inhibition blocks phosphorylation', EIFK_CH(), 'Fig. 1K', { a, grow: i => i < 2 ? A(t, c0 + .6 + i * .5, c0 + 1.8 + i * .5) : A(t, c0 + 1.8, c0 + 3), sem: A(t, c0 + 3.2, c0 + 3.8), star: A(t, c0 + 3.6, c0 + 4.1), lab: i => i < 2 ? 1 : A(t, c0 + 1.6, c0 + 2.2),
     foot: ['AβOs ± PKR inhibitor, 3h; n=3 independent cultures', 'Mean ± SEM, *p < 0.05, ANOVA + Bonferroni'], mxDy: 8, titleSize: 38 });
 }
-/* ---- 5c. In vivo models ----
+/* 5c. In vivo models
    After the culture result (Fig. 1K): the chart clears, a second square panel appears on the left, and the two animal models are
    introduced (monkey left, mouse right). The fork clip opens by sending the mouse panel home as the data panel. */
 STEPDEF.vivoCard = {
@@ -704,7 +726,7 @@ STEPDEF.vivoCard = {
   },
 };
 
-/* ---- 6. The fork appears ---- */
+/* 6. The fork appears */
 const IRS5A_CH = () => ({ ylab: 'Normalized IRS-1pSer636 (a.u.)', fig: '', ymax: 3, ticks: [0, 1, 2, 3], note: '',
   matrix: [{ name: 'AβOs', vals: ['−', '+', '−', '+'] }], groups: [{ label: 'WT', from: 0, to: 1 }, { label: 'TNFR1−/−', from: 2, to: 3 }],
   bars: DATA.IRS_TNFR1.bars.map((b, i) => ({ ...b, col: i === 1 ? PC.phos : undefined, colA: i === 1 ? 1 : undefined, gap: i === 2 ? 1 : 0 })) });
@@ -732,7 +754,20 @@ STEPDEF.fork = {
   },
 };
 
-/* ---- 7. Push eIF2α directly ---- */
+/* S11v2: the fork straight after S9B, no in-vivo card (S10). Fig. 1K fades off the panel as the fork begins; the rest is S11.
+   Only in the ?s11v2=1 step list (app.js), where it takes the place of S10 + S11: gtDur covers both, and the clip's clock runs
+   that much faster (gtWarp) so its last frame is S12A's first. */
+STEPDEF.forkV2 = {
+  noXfade: true,
+  apply(S, t) { STEPDEF.fork.apply(S, t); S.vivo.c = 0; S.vivo.left = 0; },
+  over(S, t, gt) {
+    const o = 1 - A(t, .1, 1.1);
+    if (o > .004) { ctx.save(); ctx.globalAlpha *= o; STEPDEF.kinaseC.over(S, STEPS.find(s => s.fn === 'kinaseC').dur, gt); ctx.restore(); }
+    STEPDEF.fork.over(S, t, gt);
+  },
+};
+
+/* 7. Push eIF2α directly */
 const COLOC_CH = () => ({ title: 'synapses (colocalized puncta)', unit: 'Syp + PSD-95, cultured neurons (a.u.)', fig: 'redrawn from Fig. 4H', ymax: 200, ticks: [0, 50, 100, 150, 200], n: 4, nUnit: 'independent cultures',
   bars: [{ ...DATA.COLOC_PUNCTA_SAL.bars[0], label: 'vehicle', open: true }, { ...DATA.COLOC_PUNCTA_SAL.bars[1], label: 'salubrinal' }] });
 const UPSTREAM = ['abo_tnf', 'abo_dir', 'tnf_tnfr', 'tnfr_pkr', 'pkr_eif', 'pkr_irs'];
@@ -807,7 +842,7 @@ STEPDEF.salubrinal = {
 const SAL_SPLIT = 18.0, SAL_DUR = 27.2;      // S12A = salubrinal 0..18.0 s, S12B = the rest on the same clock (every beat is either done or not started at the cut)
 STEPDEF.salubrinalB = { noXfade: true, apply(S, t) { STEPDEF.salubrinal.apply(S, SAL_SPLIT + t); }, over(S, t, gt) { STEPDEF.salubrinal.over(S, SAL_SPLIT + t, gt); } };
 
-/* ---- 12b. The open branch, then Fig. 7 ----
+/* 12b. The open branch, then Fig. 7
    Everything comes back to the disease state (the state the Fig. 7 morph starts from; the ER is not on the board yet), the panel and
    Fig. 5H, the salubrinal pill and the ring round IRS-1 (drawn at the end of scene 12) go; the dashed IRS-1 → memory arc draws, then its "?"; the
    board reorganises into the paper's Fig. 7, with the original panel beside it. Ends there. */
@@ -836,7 +871,7 @@ STEPDEF.irsQuestion = {
     salPill(S, fa, 1, 1);
   },
 };
-/* ---- 8. Push the other input ---- */
+/* 8. Push the other input */
 const THAPS_CH = () => ({ title: 'IRS-1pSer636 in dendrites', unit: 'immunofluorescence (a.u.)', fig: 'from Fig. 5D', ymax: 3.4, ticks: [0, 1, 2, 3], n: 3, nUnit: 'independent experiments',
   bars: [{ ...DATA.IRS_THAPS.bars[0], label: 'vehicle' }, { ...DATA.IRS_THAPS.bars[1], label: 'thapsigargin', col: PC.phos, colA: 1 }, { ...DATA.IRS_THAPS.bars[2], label: 'thapsigargin', sub: '+ 4-PBA' }] });
 STEPDEF.thaps = {
@@ -856,7 +891,7 @@ STEPDEF.thaps = {
     const pa = A(t, 2.6, 3.4), sl = eOut(seg(t, 2.6, 4));
     pill('thapsigargin', R[0] + 52, R[1] - lerp(210, 132, sl), { a: pa, size: 23 });
     const ba = hold(t, 9, 9.8, 16.4, 17.2), s2 = eOut(seg(t, 9, 10.4));
-    pill('4-PBA', R[0] + 72, R[1] + lerp(190, 140, s2), { a: ba, sub: 'chemical chaperone · 1 mM', size: 23 });
+    pill('4-PBA', R[0] + 72, R[1] + lerp(190, 140, s2), { a: ba, sub: 'chemical chaperone, 1 mM', size: 23 });
     barChart({ ...C, h: 484 }, THAPS_CH(), { a: A(t, 5.2, 6), grow: i => i < 2 ? A(t, 5.8 + i * .5, 7 + i * .5) : A(t, 10, 11.2), sem: A(t, 11.4, 12), dots: seg(t, 11.6, 12.3), star: A(t, 11.8, 12.3), lab: i => i < 2 ? 1 : A(t, 9.4, 10) });
     txtFit('thapsigargin also raises eIF2α-P (Fig. S5A-B)', C.x + 4, 706, { size: 19, w: 500, col: COL.dim, a: hold(t, 7.2, 8, 16.8, 17.4) }, C.w - 8);
     txtFit('a second input to IRS-1 that eIF2α-P cannot explain', C.x + 4, 770, { size: 21, w: 600, a: A(t, 17.4, 18.2) }, C.w - 8);
@@ -864,7 +899,7 @@ STEPDEF.thaps = {
   },
 };
 
-/* ---- 9. Resolve to Figure 7 ---- */
+/* 9. Resolve to Figure 7 */
 function diseaseState(S, k) {            // every node as it stands with AβOs present
   for (const n of ['abo', 'tnf', 'tnfr', 'pkr']) mv(S.n[n], 'off', 0, k);
   mv(S.n.tnf, 'up', 1, k); mv(S.n.tnfr, 'lit', 1, k); mv(S.n.tnfr, 'bound', 1, k); mv(S.n.pkr, 'lit', 1, k); mv(S.n.eif, 'lit', 1, k); mv(S.n.irs, 'lit', 1, k); mv(S.n.er, 'lit', 1, k);
@@ -892,7 +927,7 @@ STEPDEF.figure7 = {
   },
 };
 
-/* ---- 10-13: the knockout block (owner: teammate). Same board, Fig. 7 layout, nodes removed. ---- */
+/* 10-13: the knockout block (owner: teammate). Same board, Fig. 7 layout, nodes removed. */
 const norCh = (P, fig, subs) => ({ title: 'novel object recognition', unit: 'exploration time (%)', fig, ymax: 85, ticks: [0, 25, 50, 75], ref: { v: 50, label: '50%' }, n: P.n, nDots: P.nDots, nUnit: 'mice per group', bars: norBars(P, { subs }).map((b, i) => i % 2 ? { ...b, sub: ' ' } : { ...b, sub: subs[i / 2].join(' '), subDx: .5, subSize: 13 }) });
 const irsCh = (P, fig, unit) => ({ title: 'IRS-1pSer636', unit, fig, ymax: 3, ticks: [0, 1, 2, 3], n: P.n, nUnit: 'mice per condition', bars: P.bars.map((b, i) => ({ ...b, label: b.sub === 'AβOs' ? 'AβOs' : 'veh', sub: b.label, gap: i === 2 ? 1 : 0 })) });
 const sideList = (t, t0, lines) => lines.forEach(([s, fig], i) => { const a = A(t, t0 + i * .7, t0 + .8 + i * .7), y = 262 + i * 60; txt(s, 1082, y, { size: 20, w: 600, a }); txt(fig, 1082, y + 24, { size: 17, w: 500, col: COL.dim, a }); });
@@ -922,7 +957,7 @@ STEPDEF.koPkr = {
   },
   over(S, t, gt) {
     tag('TNFR1 is engaged, the kinase is missing', 716, nodeXY(S, 'pkr')[1] + 38, { a: hold(t, 4.6, 5.4, 9, 9.8), size: 20, col: COL.dim, align: 'left' });
-    sideList(t, 6.2, [['eIF2α-P: no rise', 'Fig. 3I'], ['fear memory: preserved', 'Fig. 3H'], ['synapse loss: eased by', 'a PKR inhibitor · Fig. 3J-M']]);
+    sideList(t, 6.2, [['eIF2α-P: no rise', 'Fig. 3I'], ['fear memory: preserved', 'Fig. 3H'], ['synapse loss: eased by', 'a PKR inhibitor, Fig. 3J-M']]);
     barChart(LAY.chart, norCh(DATA.NOR_PKR, 'Fig. 3G', [['WT', 'veh'], ['WT', 'AβOs'], ['PKR−/−', 'veh'], ['PKR−/−', 'AβOs']]), { a: A(t, 4.8, 5.6), grow: i => A(t, 5.4 + i * .3, 6.6 + i * .3), sem: A(t, 9, 9.6), dots: seg(t, 9.2, 10), star: A(t, 9.6, 10.1) });
     barChart(LAY.receipt, irsCh(DATA.IRS_PKR, 'Fig. 5B', '/ β-actin (a.u.)'), { a: A(t, 10, 10.8), grow: i => A(t, 10.6 + i * .35, 11.8 + i * .35), sem: A(t, 12.6, 13.2), dots: seg(t, 12.8, 13.4) });
     txt('† no AβO-induced rise in WT 129/SvEv; PKR−/− lower than WT (*)', 84, 728, { size: 18, w: 600, col: COL.text, a: hold(t, 13, 13.8, 21.4, 22) * 0 });
@@ -965,7 +1000,7 @@ STEPDEF.gridDone = {
   },
 };
 
-/* ---- S14-S20: the manipulation block, rebuilt (2026-11-20 spec) ----
+/* S14-S20: the manipulation block, rebuilt (2026-11-20 spec)
    Every scene is a change from BASE BOARD (S13's last frame: Fig. 7 layout, chain shifted left). One figure panel at a time, on
    the square frosted panel at the right; each holds only a title, the axis label, bars with SEM and asterisks, one line of n /
    stats and the figure number. No dosage pills, no inline notes, no text blocks. ER only from S18. */

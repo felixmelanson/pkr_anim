@@ -12,7 +12,7 @@ const LAY = {
 const A = (t, a, b) => ease(seg(t, a, b));
 const hold = (t, a, b, c, d) => ease(seg(t, a, b)) * (1 - ease(seg(t, c, d)));   // in over [a,b], out over [c,d]
 
-/* ---------- edges ---------- */
+/* edges */
 // An edge is a quadratic from a to b (bend = sideways offset of the control point, px).
 function edgeGeom(a, b, bend = 0, ctl = null) {      // ctl: an explicit control point instead of the sideways bend
   const mx = (a[0] + b[0]) / 2, my = (a[1] + b[1]) / 2, dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
@@ -64,7 +64,7 @@ function drawEdge(a, b, st, o = {}) {
 function between(a, ra, b, rb) { const dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1; if (ra + rb > l - 10) { const k = Math.max(0, l - 10) / (ra + rb); ra *= k; rb *= k; }      // never let the trimmed ends cross (the arrowhead flipped mid-morph)
    return [[a[0] + dx / l * ra, a[1] + dy / l * ra], [b[0] - dx / l * rb, b[1] - dy / l * rb]]; }
 
-/* ---------- legend ---------- */
+/* legend */
 // Three edge states. No card: it sits on the page, bottom left of the right column, and glides beside the board when the
 // board takes the Fig. 7 layout (lay 1). Appears with the pathway board (scene 5), not before.
 
@@ -88,7 +88,7 @@ function legendBar(S) {
   ctx.restore();
 }
 
-/* ---------- small parts ---------- */
+/* small parts */
 // methods footnote under a chart: one or more dim lines, left-aligned, each shrunk to fit maxW. y = baseline of the LAST line.
 const FOOT_SIZE = 19, FOOT_LH = 25;
 function figFoot(lines, x, y, maxW, a, o = {}) {
@@ -154,7 +154,7 @@ function card(x, y, w, h, a = 1, o = {}) {
   ctx.restore();
 }
 
-/* ---------- bar charts ---------- */
+/* bar charts */
 /* D: { title, unit, ymax, ticks, bars: [{ label, sub, mean, sem, open, col, star, gap }], ref: { v, label }, n, fig }
    o: { a, grow: number | i => 0..1, sem, star, dots: 0..1, val: bool }  Every bar is mean ± SEM; n is drawn as dots
    under the bar (group size only: the paper does not publish individual values). */
@@ -166,7 +166,7 @@ function card(x, y, w, h, a = 1, o = {}) {
 function barChart(R, D, o = {}) {
   const a = o.a ?? 1; if (a <= .004) return;
   const bars = D.bars, nb = bars.length, compact = R.h < 300 || R.w / nb < 46, mx = D.matrix, rowH = 30;
-  const note = D.note || (D.n ? `mean ± SEM · n = ${D.n}${D.nUnit ? ' ' + D.nUnit : ''}` : '');
+  const note = D.note || (D.n ? `mean ± SEM, n = ${D.n}${D.nUnit ? ' ' + D.nUnit : ''}` : '');
   const ylabs = D.ylab ? [].concat(D.ylab) : [], padL = D.ylab ? 92 + (ylabs.length - 1) * 24 : 62, padT = D.title ? (D.unit ? 62 : 48) : 26, padR = D.ref ? 58 : 16;
   const padB = (mx ? 22 + mx.length * rowH : (bars.some(b => b.sub) ? 62 : 40)) + (D.groups ? 44 + (D.groups.some(g => g.sub) ? 24 : 0) : 0) + (note ? 34 : 6);
   const px = R.x + padL, py = R.y + padT, pw = R.w - padL - padR, ph = R.h - padT - padB, y0 = py + ph;
@@ -249,7 +249,7 @@ function norBars(P, o = {}) {
   return bars;
 }
 
-/* ---------- receipts: the original panel, small, always in the same slot ---------- */
+/* receipts: the original panel, small, always in the same slot */
 function receipt(key, a, label, R = LAY.receipt, o = {}) {
   if (a <= .004) return;
   const im = IMG[key]; if (!im || !im.naturalWidth) return;
@@ -265,7 +265,7 @@ function receipt(key, a, label, R = LAY.receipt, o = {}) {
   ctx.restore();
 }
 
-/* ---------- the asymmetry grid (a figure the paper does not contain) ---------- */
+/* the asymmetry grid (a figure the paper does not contain) */
 const GRID_ROWS = [
   { k: 'tnfr', label: 'remove TNFR1', sub: 'TNFR1−/−' },
   { k: 'pkr', label: 'remove PKR', sub: 'PKR−/−' },

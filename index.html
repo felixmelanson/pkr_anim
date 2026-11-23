@@ -54,7 +54,7 @@
   <section class="panel panel-code" data-name="code" role="dialog" aria-modal="true" aria-label="Get the code" hidden>
     <button class="panel-close" type="button" aria-label="Close">&times;</button>
     <p class="code-line">Full source is on GitHub: <a href="https://github.com/felixmelanson/pkr_anim" target="_blank" rel="noopener">https://github.com/felixmelanson/pkr_anim</a></p>
-    <p class="code-note">Plain JavaScript and a 2D canvas, no framework or build step. Every frame is drawn live from code: the cells are procedural shapes with a clay shading pass, and their glowing edges are computed on the GPU (WebGL), which is what keeps it smooth in the browser.</p>
+    <p class="code-note">Plain JavaScript and a 2D canvas, no framework or build step. Every frame is drawn from code: the cells are procedural shapes with a clay shading pass and a glowing edge texture. The site plays those frames as 4K video, rendered from the same code with <code>tools/render-test.mjs</code>; add <code>?live=1</code> to the URL to draw them live in your browser instead.</p>
     <p class="code-note">Scenes live in <code>js/scenes/steps.js</code>, the figure data in <code>js/data.js</code>. Data are redrawn from Lourenco et al., 2013 (Cell Metabolism); see References.</p>
   </section>
   <section class="panel panel-icons" data-name="icons" role="dialog" aria-modal="true" aria-label="Get icons" hidden>
@@ -127,6 +127,7 @@
 
 <script src="js/app.js"></script>
 <script src="js/scrub.js"></script>
+<script src="js/video.js"></script>
 <script src="js/controls.js"></script>
 <script src="js/icons.js"></script>
 <script src="js/ui-panels.js"></script>

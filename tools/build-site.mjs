@@ -1,4 +1,5 @@
-// Build the public site (GitHub Pages): only the animation viewer, no elements page, no render tools, no papers or videos.
+// Build the public site (GitHub Pages): only the animation viewer, no elements page, no render tools, no papers. The videos it plays
+// are added by the Pages workflow from the release "videos".
 //   node tools/build-site.mjs            -> _site/  (index.html, css/viewer.css, js/ minus the elements page)
 // The look (look/*.md) is baked into js/look.js first, so the site shows exactly the textures and colours the renders use.
 // Images are already embedded in js/core/assets.js, so nothing under assets/ is needed.

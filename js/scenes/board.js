@@ -25,7 +25,7 @@ const NODES = {
 };
 const NAME = {       // [resting name, active name, sub-line when active]
   abo: ['AβOs', 'AβOs'], tnf: ['TNF-α', 'TNF-α ↑'], tnfr: ['TNFR1', 'TNFR1'], ir: ['insulin receptor', 'insulin receptor'],
-  pkr: ['PKR', 'PKR-P'], irs: ['IRS-1', 'IRS-1pSer'], eif: ['eIF2α', 'eIF2α-P'],      // (phospho-site sub-lines pThr451 / pSer636 · inhibitory / pSer51 removed to declutter: they are in the chart titles and Fig. 7)
+  pkr: ['PKR', 'PKR-P'], irs: ['IRS-1', 'IRS-1pSer'], eif: ['eIF2α', 'eIF2α-P'],      // (phospho-site sub-lines pThr451 / pSer636, inhibitory / pSer51 removed to declutter: they are in the chart titles and Fig. 7)
   syn: ['synapses', 'synapse loss', '(↓ Syp, ↓ PSD-95)'], mem: ['memory', 'memory impairment'], er: ['ER', 'ER stress'], jnk: ['pJNK IKK', 'pJNK IKK'],
 };
 const BSHIFT = -66;                                // the whole live layout sits further left: the data panel gets the room

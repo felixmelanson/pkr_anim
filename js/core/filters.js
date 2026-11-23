@@ -5,7 +5,7 @@
      blur(r)        drawn small and scaled back up (two passes), which approximates a gaussian of radius r
      brightness(k)  the image, then black at 1 - k laid on top of its own pixels ('source-atop'): colour × k, alpha kept
      saturate(s)    skipped (only the glass uses it, as a slight boost)
-   Use: drawFiltered(ctx, 'blur(6px)', img, sx, sy, sw, sh, dx, dy, dw, dh) — the same arguments as the 9-argument drawImage. */
+   Use: drawFiltered(ctx, 'blur(6px)', img, sx, sy, sw, sh, dx, dy, dw, dh), the same arguments as the 9-argument drawImage. */
 // tested by its effect, not the property: WebKit accepts ctx.filter = 'blur(2px)' and then draws without it
 const CANVAS_FILTER = (() => { try {
   const src = document.createElement('canvas'); src.width = src.height = 9; const g = src.getContext('2d'); g.fillStyle = '#fff'; g.fillRect(4, 4, 1, 1);

@@ -13,7 +13,7 @@
    Every pass is a pure function of (S, gt), so scrubbing and offline renders stay exact. */
 // Scope is the chosen look; the play-bar toggle is gone (?fluo=0|1 still loads Flat / Neon for comparison).
 // 3 Hybrid (default): clay neurons in the stain colours with the stains over them (fluoHybrid), each through its element's
-// texture (elements page: 'Neuron, pPKR + DAPI · hybrid', AβO stain = 'AβO stain only'). ?fluo=2 is the previous Scope look.
+// texture (elements page: 'Neuron, pPKR + DAPI, hybrid', AβO stain = 'AβO stain only'). ?fluo=2 is the previous Scope look.
 const FLUO_LOOK = (() => { const q = new URLSearchParams(location.search).get('fluo'); return q != null ? clamp(+q | 0, 0, 3) : 3; })();
 
 /* Confocal style tests (?conf=1..4; 0 = the look before the tests). Every knob in one place:

@@ -18,7 +18,7 @@ setClayMax(1.6);     // cells that fill the frame (scene 1, the push-in) keep th
 // tools/render.mjs --crop trims clips to exactly this band.
 const CROP = FULL ? { y: 0, h: 1080 } : { y: 150, h: 800 };      // full-frame stage by default (culture.js); ?full=0 restores the 800 px band
 let SCL = 1, DPR = 1, DPR_CAP = 2;      // DPR_CAP: lowered to 1.5 by the adaptive quality, as its last step
-// Viewer layout: the stage as wide as the window allows, a dock row under it (footer credit · controls · footer links); the dock
+// Viewer layout: the stage as wide as the window allows, a dock row under it (footer credit, controls, footer links); the dock
 // row uses the in-animation footer's left / right margin and type, so it reads as the same footer. On narrow windows the credit
 // and links drop under the controls. Fullscreen: the stage alone, centred, with the controls over it. (--stage-*, --dock-*: CSS)
 function resize() {
@@ -50,39 +50,39 @@ const STEPS = [
     cite: 'Liddelow et al., 2017 (Nature 541:481). Schematic' },
   { fn: 'bridgeB', slug: 'bridge-b-tnf-alone', dur: 8.6, busy: 5, owner: 'felix', cap: 'From the astrocyte talk: the same messenger', sub: 'take the astrocyte out of the picture: TNF-α goes on alone',
     cite: 'Liddelow et al., 2017 (Nature 541:481). Schematic' },
-  { fn: 'anomaly', slug: 'anomaly-a-binding', dur: 9.2, busy: 8.8, owner: 'felix', cap: 'Phospho-PKR rises with or without bound oligomer', sub: 'hippocampal cultures · AβOs 500 nM · 3 h',
+  { fn: 'anomaly', slug: 'anomaly-a-binding', dur: 9.2, busy: 8.8, owner: 'felix', cap: 'Phospho-PKR rises with or without bound oligomer', sub: 'hippocampal cultures, AβOs 500 nM, 3 h',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 1F-H)' },
-  { fn: 'anomalyHold', slug: 'anomaly-a2-ad-brains', dur: 2.0, busy: 2, owner: 'felix', cap: 'Phospho-PKR rises with or without bound oligomer', sub: 'hippocampal cultures · AβOs 500 nM · 3 h',
+  { fn: 'anomalyHold', slug: 'anomaly-a2-ad-brains', dur: 2.0, busy: 2, owner: 'felix', cap: 'Phospho-PKR rises with or without bound oligomer', sub: 'hippocampal cultures, AβOs 500 nM, 3 h',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 1F-H)' },      // S3b (durations: ANOM_D in steps.js)
-  { fn: 'anomalyB', slug: 'anomaly-b-prior-model', dur: 6.4, busy: 6, owner: 'felix', cap: 'Phospho-PKR rises with or without bound oligomer', sub: 'hippocampal cultures · AβOs 500 nM · 3 h',
+  { fn: 'anomalyB', slug: 'anomaly-b-prior-model', dur: 6.4, busy: 6, owner: 'felix', cap: 'Phospho-PKR rises with or without bound oligomer', sub: 'hippocampal cultures, AβOs 500 nM, 3 h',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 1F-H)' },      // S4A
-  { fn: 'anomalyC', slug: 'anomaly-c-every-neuron', dur: 4.4, busy: 4, owner: 'felix', cap: 'Phospho-PKR rises with or without bound oligomer', sub: 'hippocampal cultures · AβOs 500 nM · 3 h',
+  { fn: 'anomalyC', slug: 'anomaly-c-every-neuron', dur: 4.4, busy: 4, owner: 'felix', cap: 'Phospho-PKR rises with or without bound oligomer', sub: 'hippocampal cultures, AβOs 500 nM, 3 h',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 1F-H)' },      // S4B
-  { fn: 'anomalyD', slug: 'anomaly-d-fluorescence', dur: 5.1, gtDur: 5.1 - 6.6, busy: 4.5, owner: 'felix', cap: 'Phospho-PKR rises with or without bound oligomer', sub: 'hippocampal cultures · AβOs 500 nM · 3 h',
+  { fn: 'anomalyD', slug: 'anomaly-d-fluorescence', dur: ANOM_D.c + ANOM_D.fig, gtDur: ANOM_D.c + ANOM_D.fig - ANOM_EXTRA, busy: 7, owner: 'felix', cap: 'Phospho-PKR rises with or without bound oligomer', sub: 'hippocampal cultures, AβOs 500 nM, 3 h',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 1F-H)' },      // S4C (gtDur: see ANOM_D)
-  { fn: 'messenger', slug: 'messenger', dur: 15.4, busy: 9.8, owner: 'felix', cap: 'A soluble messenger: TNF-α in the medium', sub: 'conditioned medium · n = 3 independent experiments · * p < 0.05',
+  { fn: 'messenger', slug: 'messenger', dur: 15.4, busy: 9.8, owner: 'felix', cap: 'A soluble messenger: TNF-α in the medium', sub: 'conditioned medium, n = 3 independent experiments, * p < 0.05',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 2H)' },
-  { fn: 'controlDishA', slug: 'infliximab-control-a', dur: 8.6, busy: 8, owner: 'felix', cap: 'Infliximab blocks the signal, not the binding', sub: 'TNF-α neutralizing antibody · 1 µg/mL · added 30 min before AβOs',
+  { fn: 'controlDishA', slug: 'infliximab-control-a', dur: 8.6, busy: 8, owner: 'felix', cap: 'Infliximab blocks the signal, not the binding', sub: 'TNF-α neutralizing antibody, 1 µg/mL, added 30 min before AβOs',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 2A-G)' },      // S6A (durations: DISH_T in steps.js)
-  { fn: 'controlDishB', slug: 'infliximab-control-a2', dur: 5.2, busy: 5, owner: 'felix', cap: 'Infliximab blocks the signal, not the binding', sub: 'TNF-α neutralizing antibody · 1 µg/mL · added 30 min before AβOs',
+  { fn: 'controlDishB', slug: 'infliximab-control-a2', dur: 5.2, busy: 5, owner: 'felix', cap: 'Infliximab blocks the signal, not the binding', sub: 'TNF-α neutralizing antibody, 1 µg/mL, added 30 min before AβOs',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 2A-G)' },      // S6B
-  { fn: 'controlDishC', slug: 'infliximab-control-a3', dur: 4.6, gtDur: 19.2 - 8.6 - 5.2, busy: 4.6, owner: 'felix', cap: 'Infliximab blocks the signal, not the binding', sub: 'TNF-α neutralizing antibody · 1 µg/mL · added 30 min before AβOs',
+  { fn: 'controlDishC', slug: 'infliximab-control-a3', dur: 4.6, gtDur: 19.2 - 8.6 - 5.2, busy: 4.6, owner: 'felix', cap: 'Infliximab blocks the signal, not the binding', sub: 'TNF-α neutralizing antibody, 1 µg/mL, added 30 min before AβOs',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 2A-G)' },
   { fn: 'controlBack', slug: 'infliximab-control-b', dur: 9.2, busy: 8.6, owner: 'felix', cap: 'Infliximab blocks the signal, not the binding', sub: 'direct binding is not the route; a secreted factor is',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 2A-G)' },
-  { fn: 'vivo', slug: 'into-the-neuron', dur: 11.2, busy: 9, owner: 'felix', cap: 'Inside the neuron: which eIF2α kinase?', sub: 'PKR is activated, PERK is not · PKR inhibitor 1 µM blocks eIF2α-P',
+  { fn: 'vivo', slug: 'into-the-neuron', dur: 11.2, busy: 9, owner: 'felix', cap: 'Inside the neuron: which eIF2α kinase?', sub: 'PKR is activated, PERK is not, PKR inhibitor 1 µM blocks eIF2α-P',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 1J-K; Fig. S2)' },
-  { fn: 'eifSchem', slug: 'eif2a-schematic', dur: 12.4, busy: 8, owner: 'felix', cap: 'Inside the neuron: which eIF2α kinase?', sub: 'PKR is activated, PERK is not · PKR inhibitor 1 µM blocks eIF2α-P',
+  { fn: 'eifSchem', slug: 'eif2a-schematic', dur: 10.0, busy: 8, owner: 'felix', cap: 'Inside the neuron: which eIF2α kinase?', sub: 'PKR is activated, PERK is not, PKR inhibitor 1 µM blocks eIF2α-P',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 1J-K; Fig. S2)' },
-  { fn: 'kinaseC', slug: 'which-kinase-c', dur: 10.8, busy: 7.6, owner: 'felix', cap: 'Inside the neuron: which eIF2α kinase?', sub: 'PKR is activated, PERK is not · PKR inhibitor 1 µM blocks eIF2α-P',
+  { fn: 'kinaseC', slug: 'which-kinase-c', dur: 8.8, busy: 6.6, owner: 'felix', cap: 'Inside the neuron: which eIF2α kinase?', sub: 'PKR is activated, PERK is not, PKR inhibitor 1 µM blocks eIF2α-P',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 1J-K; Fig. S2)' },
   { fn: 'vivoCard', slug: 'in-vivo-models', dur: 2.4, busy: 2.4, owner: 'felix', cap: 'From the dish to the animal', sub: 'the culture result, checked in two in vivo models',
     cite: 'Lourenco et al., 2013 (mice: Figs. 1E, 1I, 3, 5; monkeys: Fig. 1L-O)' },
   { fn: 'fork', slug: 'fork', dur: 20, busy: 16, owner: 'felix', cap: 'Phospho-PKR reaches two targets', sub: 'eIF2α-pSer51 and IRS-1pSer636',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 5A)' },
-  { fn: 'salubrinal', slug: 'push-eif2a', dur: 18.0, busy: 15, owner: 'felix', cap: 'Force eIF2α-P alone: memory fails, IRS-1 does not move', sub: 'salubrinal (GADD34 inhibitor) · 1 mg/kg i.p. × 7 d in mice · 10 µM in culture',
+  { fn: 'salubrinal', slug: 'push-eif2a', dur: 18.0, busy: 15, owner: 'felix', cap: 'Force eIF2α-P alone: memory fails, IRS-1 does not move', sub: 'salubrinal (GADD34 inhibitor), 1 mg/kg i.p. × 7 d in mice, 10 µM in culture',
     cite: 'Adapted from Lourenco et al., 2013 (Figs. 4A, 5H)' },
-  { fn: 'salubrinalB', slug: 'push-eif2a-b', dur: 9.2, busy: 6, owner: 'felix', cap: 'Force eIF2α-P alone: memory fails, IRS-1 does not move', sub: 'salubrinal (GADD34 inhibitor) · 1 mg/kg i.p. × 7 d in mice · 10 µM in culture',
+  { fn: 'salubrinalB', slug: 'push-eif2a-b', dur: 9.2, busy: 6, owner: 'felix', cap: 'Force eIF2α-P alone: memory fails, IRS-1 does not move', sub: 'salubrinal (GADD34 inhibitor), 1 mg/kg i.p. × 7 d in mice, 10 µM in culture',
     cite: 'Adapted from Lourenco et al., 2013 (Figs. 4A, 5H)' },
   { fn: 'irsQuestion', slug: 'irs-question', dur: 7.2, busy: 7.2, owner: 'felix', cap: 'IRS-1: the open branch', sub: 'everything back to the disease state; IRS-1 → memory is still a question; the board becomes Fig. 7',
     cite: 'Adapted from Lourenco et al., 2013 (Fig. 7)' },
@@ -97,7 +97,7 @@ const STEPS = [
   { fn: 's20Close', slug: 'close', dur: 3.0, busy: 2.5, owner: 'teammate', cap: 'Close', sub: '', cite: 'Summary of Lourenco et al., 2013 (Figs. 3-5; Fig. S5)' },
 ];
 
-// ---- state: end state of each step, cached (pure function of the step list) ----
+// state: end state of each step, cached (pure function of the step list)
 const END = [];
 function endState(k) { if (k < 0) return S_INIT(); if (!END[k]) { const S = structuredClone(endState(k - 1)); STEPDEF[STEPS[k].fn].apply(S, STEPS[k].dur); END[k] = S; } return END[k]; }
 function stateAt(k, t) { const S = structuredClone(endState(k - 1)); STEPDEF[STEPS[k].fn].apply(S, clamp(t, 0, STEPS[k].dur)); return S; }
@@ -233,7 +233,7 @@ function applyQuality() {
 let STAGE_FROZEN = false, PAUSE_KEY = '';      // STAGE_FROZEN: a panel is open over the stage (ui-panels.js): nothing is redrawn
 function frame(now) {
   qualityTick(now);
-  if (!frozen && !STAGE_FROZEN) {
+  if (!frozen && !STAGE_FROZEN && !(typeof VIDEO_ON !== 'undefined' && VIDEO_ON)) {      // VIDEO_ON: the site plays the rendered clips (video.js)
     if (paused) {      // paused: draw only when something changed (step, scrub position, size), not the same picture every frame
       const key = `${step}|${pauseT}|${pauseGT}|${cv.width}x${cv.height}|${prevStep}`;
       if (key !== PAUSE_KEY) { PAUSE_KEY = key; render(step, pauseT, pauseGT); }
@@ -245,6 +245,9 @@ function frame(now) {
 (function init() {
   if (RENDER_MODE) document.body.classList.add('render');
   if (QS.get('s4') === 'split') setScene4('split');
+  if (KIN4) { Object.assign(STEPS.find(x => x.fn === 'kinaseC'), { dur: 10.8, busy: 7.6 }); END.length = 0; }
+  // ?s11v2=1: S11v2 (the fork straight after S9B, no in-vivo card) in place of S10 + S11, for rendering that clip
+  if (QS.get('s11v2') === '1') { const k = STEPS.findIndex(x => x.fn === 'vivoCard'), f = STEPS[k + 1]; STEPS.splice(k, 2, { ...f, fn: 'forkV2', slug: 'fork-v2', gtDur: STEPS[k].dur + f.dur, gtWarp: true }); END.length = 0; }
   const h = parseInt(location.hash.slice(1)); if (!isNaN(h)) { step = clamp(h - 1, 0, STEPS.length - 1) | 0; }
   IMG_READY.then(() => requestAnimationFrame(frame));
 })();
@@ -253,9 +256,11 @@ function frame(now) {
 // gtBase(k) is the global clock at the start of step k, as if every earlier step had played for exactly its dur,
 // so idle motion continues from one clip into the next.
 const gtBase = k => 50 + STEPS.slice(0, k).reduce((s, x) => s + (x.gtDur ?? x.dur ?? 0), 0);      // gtDur: a clip that runs longer than its share of the global clock (S6C)
-window.__seek = (k, t, gt, prev, pt) => { frozen = true; step = k; prevStep = prev ?? k; prevT = pt ?? 99; render(k, t, gt ?? (gtBase(k) + t)); };
+// the global clock at time t of step k; a gtWarp step runs its clock faster so it spans its whole gtDur (S11v2)
+const gtAt = (k, t) => { const x = STEPS[k]; return gtBase(k) + (x.gtWarp ? t * x.gtDur / x.dur : t); };
+window.__seek = (k, t, gt, prev, pt) => { frozen = true; step = k; prevStep = prev ?? k; prevT = pt ?? 99; render(k, t, gt ?? gtAt(k, t)); };
 window.__anim = {
   crop: CROP, ready: IMG_READY,
   steps: () => STEPS.map((s, i) => ({ i, slug: s.slug, dur: s.dur, t0: s.t0 || 0, video: s.video !== false, busy: s.busy, cap: s.cap, cite: s.cite, owner: s.owner })),
-  gtBase, setScene4, setTheme: m => { setThemeMode(m); onThemeChange(); }, setCaptions: v => { CAPTIONS = !!v; },
+  gtBase, gtAt, setScene4, setTheme: m => { setThemeMode(m); onThemeChange(); }, setCaptions: v => { CAPTIONS = !!v; },
 };

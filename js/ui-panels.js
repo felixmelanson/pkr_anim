@@ -28,7 +28,7 @@
     e.preventDefault(); if (openName === 'icons' && iconDetail >= 0) iconsBack(); else hide();
   });
 
-  /* ---------- Custom Icons ---------- */
+  /* Custom Icons */
   const ip = ov.querySelector('.panel-icons'), grid = ip.querySelector('.icons-grid'), listView = ip.querySelector('.icons-list'), detailView = ip.querySelector('.icons-detail');
   const big = ip.querySelector('.icons-big'), stage = ip.querySelector('.icons-stage'), playBtn = ip.querySelector('.icons-play'), playLab = ip.querySelector('.icons-play-label');
   const imgBtn = ip.querySelector('.icons-copy-img'), codeBtn = ip.querySelector('.icons-copy-code'), codeEl = ip.querySelector('.icons-code code');
@@ -92,7 +92,7 @@
     try { await navigator.clipboard.writeText(iconCode(ICONS[iconDetail])); flash(codeBtn, 'Copied'); } catch (e) { flash(codeBtn, 'Select and copy'); }
   });
 
-  /* ---------- References (APA style; authors shortened to the first three and the last; DOIs checked against PubMed) ---------- */
+  /* References (APA style; authors shortened to the first three and the last; DOIs checked against PubMed) */
   const REFS = [
     ['Lourenco, M. V., Clarke, J. R., Frozza, R. L., … De Felice, F. G.', 2013, 'TNF-α mediates PKR-dependent memory impairment and brain IRS-1 inhibition induced by Alzheimer’s β-amyloid oligomers in mice and monkeys.', 'Cell Metabolism, 18(6), 831–843.', '10.1016/j.cmet.2013.11.002', 'The paper this animation is about. All data shown are redrawn from it.'],
     ['Bomfim, T. R., Forny-Germano, L., Sathler, L. B., … De Felice, F. G.', 2012, 'An anti-diabetes agent protects the mouse brain from defective insulin signaling caused by Alzheimer’s disease-associated Aβ oligomers.', 'Journal of Clinical Investigation, 122(4), 1339–1353.', '10.1172/JCI57256'],

@@ -7,12 +7,12 @@ setThemeMode('dark'); THEME.light = false;
 setClayMax(1.6);
 TEX_EL_ON = false;                               // the page applies each element's look itself (paint), not the scenes' per-element hook                                 // big cells keep their clay volume (as in the animation)
 
-/* ---------- colour slots ---------- */
+/* colour slots */
 const P4 = [['rim', 'Outline'], ['body', 'Fill'], ['fil', 'Highlight'], ['nuc', 'Nucleus']];
 const pal4 = (root, group) => P4.map(([k, label]) => ({ path: `${root}.${k}`, label, group }));
 const one = (path, label, group = 'Colours') => [{ path, label, group }];
 
-/* ---------- the elements ---------- */
+/* the elements */
 // draw(t, playing): world units, centred near 0 (the page fits each one to its frame). anim: what Play changes.
 const C_ASTRO = new Cell('astro', 0, 0, 4242, 1.55, { drift: 2 });
 const C_MICRO = new Cell('micro', 0, 0, 311, 1.35, { len: 17, drift: 3 });
@@ -47,15 +47,15 @@ const SECTIONS = [
     { id: 'neuron-lit', name: 'Neuron, phospho-PKR', sub: 'lit (gold) state', slots: [...pal4('coral', 'Active tint'), ...pal4('tp.neuron', 'Neuron')], draw: (t, p) => C_PYR.draw(ctx, { t, colR: p ? wave(t) : 1, noPuncta: true }) },
     { id: 'neuron-dying', name: 'Dying neuron', sub: 'beading → fragments', slots: [...pal4('grayp', 'Dying grey'), ...pal4('tp.neuron', 'Neuron'), ...one('ui.casp', 'Caspase glow', 'Other')], draw: (t, p) => C_PYR.draw(ctx, { t, d: p ? (t * .12) % 1 : .62, noPuncta: true }) },
     { id: 'rgc', name: 'Retinal ganglion cell', sub: 'scene 1 bridge', slots: pal4('rgc', 'RGC'), draw: t => C_RGC.draw(ctx, { t, noPuncta: true }) },
-    { id: 'rgc-dying', name: 'RGC apoptosis', sub: 'scene 1 · Play: beading → fragments', slots: [...pal4('rgc', 'RGC'), ...pal4('grayp', 'Dying grey'), ...one('ui.casp', 'Caspase glow', 'Other')], draw: (t, p) => C_RGC.draw(ctx, { t, d: p ? (t * .12) % 1 : .62, noPuncta: true }) },
+    { id: 'rgc-dying', name: 'RGC apoptosis', sub: 'scene 1, Play: beading → fragments', slots: [...pal4('rgc', 'RGC'), ...pal4('grayp', 'Dying grey'), ...one('ui.casp', 'Caspase glow', 'Other')], draw: (t, p) => C_RGC.draw(ctx, { t, d: p ? (t * .12) % 1 : .62, noPuncta: true }) },
     { id: 'oligo', name: 'Oligodendrocyte', slots: pal4('tp.oligo', 'Oligodendrocyte'), draw: t => C_OLIGO.draw(ctx, { t }) },
     { id: 'neuron-abo', name: 'Neuron with bound AβOs', sub: 'Play: oligomers landing', texFrom: 'neuron', sepFrom: 'puncta', slots: [...pal4('tp.neuron', 'Neuron'), ...one('pc.abo', 'AβO puncta', 'Oligomers')], draw: (t, p) => atOrigin(NEU[0], () => NEU[0].draw(ctx, { t, colR: 0, noPuncta: true, after: puncta(NEU[0], bindAt(t, p)) })) },
   ] },
   { title: 'Confocal (immunofluorescence)', items: [
-    { id: 'flh-neuron', name: 'Neuron, pPKR + DAPI · hybrid', sub: 'clay + stain texture · Play: pPKR rises', slots: STAINS.slice(0, 2), draw: confocalHybrid(HERO, { g: 1, b: 1, r: 0 }) },
-    { id: 'flh-bound', name: 'AβO-bound neuron · hybrid', sub: 'clay + pPKR + DAPI + AβO', texFrom: 'flh-neuron', sepFrom: 'fl-red', sepLabel: 'AβO stain', slots: STAINS, draw: confocalHybrid(0, { g: 1, b: 1, r: 1 }) },
-    { id: 'flh-soft', name: 'Neuron · hybrid, more stain', sub: 'stain stronger over the clay', slots: STAINS.slice(0, 2), draw: confocalHybrid(HERO, { g: 1, b: 1, r: 0 }, { stain: 1, clay: .7 }) },
-    { id: 'flh-clay', name: 'Neuron · hybrid, more clay', sub: 'clay stronger, stain as a sheen', slots: STAINS.slice(0, 2), draw: confocalHybrid(HERO, { g: 1, b: 1, r: 0 }, { stain: .35, clay: 1.15 }) },
+    { id: 'flh-neuron', name: 'Neuron, pPKR + DAPI, hybrid', sub: 'clay + stain texture, Play: pPKR rises', slots: STAINS.slice(0, 2), draw: confocalHybrid(HERO, { g: 1, b: 1, r: 0 }) },
+    { id: 'flh-bound', name: 'AβO-bound neuron, hybrid', sub: 'clay + pPKR + DAPI + AβO', texFrom: 'flh-neuron', sepFrom: 'fl-red', sepLabel: 'AβO stain', slots: STAINS, draw: confocalHybrid(0, { g: 1, b: 1, r: 1 }) },
+    { id: 'flh-soft', name: 'Neuron, hybrid, more stain', sub: 'stain stronger over the clay', slots: STAINS.slice(0, 2), draw: confocalHybrid(HERO, { g: 1, b: 1, r: 0 }, { stain: 1, clay: .7 }) },
+    { id: 'flh-clay', name: 'Neuron, hybrid, more clay', sub: 'clay stronger, stain as a sheen', slots: STAINS.slice(0, 2), draw: confocalHybrid(HERO, { g: 1, b: 1, r: 0 }, { stain: .35, clay: 1.15 }) },
     { id: 'fl-neuron', name: 'Neuron, pPKR + DAPI', sub: 'flat stain (the old scene look)', slots: STAINS.slice(0, 2), draw: confocal(HERO, { g: 1, b: 1, r: 0 }) },
     { id: 'fl-bound', name: 'AβO-bound neuron', sub: 'flat stain (the old scene look)', texFrom: 'fl-neuron', sepFrom: 'fl-red', sepLabel: 'AβO stain', slots: STAINS, draw: confocal(0, { g: 1, b: 1, r: 1 }) },
     { id: 'fl-green', name: 'pPKR stain only', sub: 'green channel', slots: STAINS.slice(0, 1), draw: confocal(HERO, { g: 1, b: 0, r: 0 }) },
@@ -68,7 +68,7 @@ const SECTIONS = [
     { id: 'tnfb', name: 'Neutralized TNF-α', sub: 'bound by infliximab', slots: [...one('pc.tnf', 'TNF-α'), ...one('pc.gray', 'Grey'), ...one('pc.ab', 'Antibody')], draw: (t, p) => glyph(ctx, 'tnfb', 0, 0, 60, p ? Math.sin(t * .6) * .25 : 0, 1) },
     { id: 'il1', name: 'IL-1α', sub: 'β-trefoil', slots: one('pc.il1', 'IL-1α'), draw: (t, p) => glyph(ctx, 'il1', 0, 0, 60, p ? t * .4 : 0, 1) },
     { id: 'c1q', name: 'C1q', sub: 'bouquet of tulips', slots: one('pc.c1q', 'C1q'), draw: (t, p) => glyph(ctx, 'c1q', 0, 0, 60, p ? Math.sin(t * .6) * .25 : 0, 1) },
-    { id: 'puncta', name: 'Bound AβO puncta', sub: 'the dots on the dendrites · Play: landing', slots: one('pc.abo', 'AβO'), draw: (t, p) => atOrigin(NEU[0], () => NEU[0].draw(ctx, { t, noPuncta: true, fluo: { col: [0, 0, 0], a: 0 }, after: puncta(NEU[0], bindAt(t, p)) })) },
+    { id: 'puncta', name: 'Bound AβO puncta', sub: 'the dots on the dendrites, Play: landing', slots: one('pc.abo', 'AβO'), draw: (t, p) => atOrigin(NEU[0], () => NEU[0].draw(ctx, { t, noPuncta: true, fluo: { col: [0, 0, 0], a: 0 }, after: puncta(NEU[0], bindAt(t, p)) })) },
     { id: 'lipid', name: 'Saturated lipid droplets', sub: 'A1 output', slots: one('pc.lps', 'Lipid'), draw: (t, p) => { for (let i = 0; i < 6; i++) { const u = p ? (t * .25 + i / 6) % 1 : i / 6; const x = lerp(-40, 40, u), y = Math.sin(u * Math.PI) * -14 + (i % 3) * 5; ctx.beginPath(); ctx.arc(x, y, 3.4 - (i % 2) * .7, 0, TAU); ctx.fillStyle = rgb(PC.lps); ctx.fill(); ctx.strokeStyle = rgb(mix(PC.lps, [0, 0, 0], .45), .7); ctx.lineWidth = .7; ctx.stroke(); } } },
     { id: 'phos', name: 'Phospho-mark', sub: 'the P badge', slots: one('pc.phos', 'Phospho'), draw: (t, p) => pBadge(0, 0, 18, p ? .4 + .6 * wave(t * 2) : 1) },
   ] },
@@ -98,7 +98,7 @@ const SECTIONS = [
 ];
 const ITEMS = SECTIONS.flatMap(s => s.items);
 
-/* ---------- per-element settings (texture, shift) ---------- */
+/* per-element settings (texture, shift) */
 const GKEY = 'pkr.gallery.v1';
 const gLoad = () => { try { return JSON.parse(localStorage.getItem(GKEY)) || {}; } catch (e) { return {}; } };
 const gSave = o => { try { localStorage.setItem(GKEY, JSON.stringify(o)); } catch (e) { } };
@@ -107,7 +107,7 @@ const texIndex = v => typeof v === 'number' ? v : Math.max(0, TEX_LOOKS.indexOf(
 const itemSet = id => { const base = (typeof LOOK !== 'undefined' && LOOK.elements && LOOK.elements[id]) || {}, s = { ...base, ...(gLoad()[id] || {}) }; return { ...s, tex: s.tex == null ? 0 : texIndex(s.tex) }; };
 function itemUpdate(id, fn) { const all = gLoad(), next = fn({ ...(all[id] || {}) }); if (next && Object.keys(next).length) all[id] = next; else delete all[id]; gSave(all); }
 
-/* ---------- drawing ---------- */
+/* drawing */
 // world bounds of each element, measured once by drawing it (static and at a few playing moments) and reading the pixels
 const FIT = {};
 function measure(it) {
@@ -138,7 +138,7 @@ function paint(cv, it, t, playing, margin = 1.18) {
   } finally { ctx = null; }
 }
 
-/* ---------- grid ---------- */
+/* grid */
 const TILE = new Map();
 function buildGrid() {
   const root = document.getElementById('sections'), dpr = Math.min(2, devicePixelRatio || 1);
@@ -162,7 +162,7 @@ function buildGrid() {
 }
 const repaintTiles = () => { for (const it of ITEMS) paint(TILE.get(it.id), it, 0, false); };
 
-/* ---------- popup ---------- */
+/* popup */
 const dlg = document.getElementById('viewer'), big = document.getElementById('big'), playBtn = document.getElementById('play');
 let cur = -1, playing = false, t0 = 0, tNow = 0, raf = 0, dirty = false;
 function sizeBig() { const r = big.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); const n = Math.max(200, Math.round(Math.min(r.width, r.height) * dpr)); if (big.width !== n) { big.width = big.height = n; } }
@@ -207,7 +207,7 @@ dlg.addEventListener('keydown', e => {
 });
 addEventListener('resize', () => { if (cur >= 0 && !playing) redraw(); });
 
-/* ---------- controls ---------- */
+/* controls */
 function shiftColor(rgbA, sh) {          // hue (degrees), saturation and lightness (-100..100), as in physio_render
   const [r, g, b] = rgbA.map(v => v / 255), max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
   let h = 0, s = 0; const l = (max + min) / 2;

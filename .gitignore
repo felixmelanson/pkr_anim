@@ -8,3 +8,5 @@ out/
 papers/
 _site/
 testing/*.mov
+# local copy of the site videos (the site gets them from the GitHub release "videos")
+videos

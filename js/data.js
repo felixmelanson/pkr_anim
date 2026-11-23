@@ -21,7 +21,7 @@
 const DATA = {
   PAPER: 'Lourenco et al., 2013, Cell Metab. 18:831-843',
 
-  // ---- Fig. 1 (PDF p. 3, journal p. 833) ----
+  // Fig. 1 (PDF p. 3, journal p. 833)
   PPKR_CULTURE: {
     source: 'Lourenco 2013, Fig. 1G (p. 833)', unit: 'PKR-pThr451 immunofluorescence (a.u.)', n: 4, nUnit: 'independent cultures',
     test: "* p < 0.05, Student's t test", res: 0.011,
@@ -35,7 +35,7 @@ const DATA = {
            { label: 'PKRi + AβOs', mean: 0.58, sem: 0.14 }],
   },
 
-  // ---- Fig. 2 (PDF p. 4, journal p. 834) ----
+  // Fig. 2 (PDF p. 4, journal p. 834)
   PPKR_INFLIX: {
     source: 'Lourenco 2013, Fig. 2B (p. 834)', unit: 'PKR-pThr451 immunofluorescence (a.u.)', n: 4, nUnit: 'independent cultures',
     test: '** p < 0.01, ANOVA + Bonferroni', res: 0.011,
@@ -58,7 +58,7 @@ const DATA = {
     bars: [{ label: 'Vehicle', mean: 28.5, sem: 0.8 }, { label: 'AβOs', mean: 54.4, sem: 4.3, star: '*' }],
   },
 
-  // ---- Fig. 3 (PDF p. 5, journal p. 835) ----
+  // Fig. 3 (PDF p. 5, journal p. 835)
   NOR_INFLIX: {
     source: 'Lourenco 2013, Fig. 3A (p. 835)', unit: 'exploration time (%)', n: '7-10', nDots: 7, nUnit: 'mice per group (dots show the minimum, 7)',
     test: '* p < 0.05 vs the 50% reference value', ref: 50, res: 0.41,
@@ -113,7 +113,7 @@ const DATA = {
            { label: 'PKR−/−', sub: 'vehicle', mean: 0.69, sem: 0.03 }, { label: 'PKR−/−', sub: 'AβOs', mean: 0.72, sem: 0.10 }],
   },
 
-  // ---- Fig. 4 (PDF p. 6, journal p. 836) ----
+  // Fig. 4 (PDF p. 6, journal p. 836)
   NOR_SALUBRINAL: {
     source: 'Lourenco 2013, Fig. 4A (p. 836)', unit: 'exploration time (%)', n: 10, nDots: 10, nUnit: 'mice per group',
     test: '* p < 0.05 vs the 50% reference value', ref: 50, res: 0.36,
@@ -141,7 +141,7 @@ const DATA = {
     bars: [{ label: 'Vehicle', mean: 153, sem: 23 }, { label: 'Salubrinal', mean: 54, sem: 2, star: '*' }],
   },
 
-  // ---- Fig. 5 (PDF p. 7, journal p. 837) ----
+  // Fig. 5 (PDF p. 7, journal p. 837)
   IRS_TNFR1: {
     source: 'Lourenco 2013, Fig. 5A (p. 837)', unit: 'IRS-1pSer636 / total IRS-1 (a.u.)', n: 7, nUnit: 'mice per condition', test: '* p < 0.05, ANOVA + Bonferroni', res: 0.010,
     bars: [{ label: 'WT', sub: 'vehicle', mean: 1.02, sem: 0.12 }, { label: 'WT', sub: 'AβOs', mean: 2.01, sem: 0.26, star: '*' },
@@ -166,12 +166,12 @@ const DATA = {
     bars: [{ label: 'Vehicle', mean: 1.27, sem: 0.16 }, { label: 'Salubrinal', mean: 1.28, sem: 0.13 }],
   },
 
-  // ---- Doses and conditions, copied from Experimental Procedures (p. 840) and the legends ----
+  // Doses and conditions, copied from Experimental Procedures (p. 840) and the legends
   PARAMS: {
-    abo: '500 nM AβOs · 3 h', cultures: 'rat hippocampal neurons, 18-21 DIV', icv: '10 pmol AβOs i.c.v.',
+    abo: '500 nM AβOs, 3 h', cultures: 'rat hippocampal neurons, 18-21 DIV', icv: '10 pmol AβOs i.c.v.',
     inflix: 'infliximab 1 µg/mL, added 30 min before AβOs', inflixVivo: 'infliximab 20 µg/day i.p. × 7 d',
-    pkri: 'PKR inhibitor 1 µM', sal: 'salubrinal 10 µM · 3 h', salVivo: 'salubrinal 1 mg/kg i.p. × 7 d',
-    thaps: 'thapsigargin 1 µM · 3 h', pba: '4-PBA 1 mM',
+    pkri: 'PKR inhibitor 1 µM', sal: 'salubrinal 10 µM, 3 h', salVivo: 'salubrinal 1 mg/kg i.p. × 7 d',
+    thaps: 'thapsigargin 1 µM, 3 h', pba: '4-PBA 1 mM',
   },
 };
 

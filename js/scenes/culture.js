@@ -323,7 +323,7 @@ function drawCulture(S, gt) {
   ctx.restore();
 }
 
-/* ---------- scene 4, experimental variant: the same culture in two petri dishes ---------- */
+/* scene 4, experimental variant: the same culture in two petri dishes */
 /* Dish hardware copied from physio_render/src/engines/lab.js (drawDish, drawDishRim, tiltDish: "Petri dish, tilting"), with
    two additions: hw fades the glassware in (the scene opens as the plain top-down field and an iris closes into the dish), and
    clipR is the iris radius. The glass is drawn outside clay (it is all gradients and thin rims); the cells inside keep it. */
@@ -458,7 +458,7 @@ function drawTissueDiagram(S, gt) {
   txt('microglia?', mic[0] + 36, mic[1] - 34, { size: 26 * k, w: 500, it: true, col: COL.dim, a: la * (T.relay.show || 0), halo: 6 * k });
 }
 
-/* ---------- confocal view: the same cells, redrawn as the three-channel immunofluorescence of Fig. 1H ---------- */
+/* confocal view: the same cells, redrawn as the three-channel immunofluorescence of Fig. 1H */
 const FL = new Proxy({}, { get: (_, p) => PALETTES.dark.fl[p] });     // confocal channel colours (theme.js; editable on gallery.html). The stage stays black in both themes.
 function drawConfocal(S, gt) {
   const C = S.conf; if (!C || C.a <= .004) return;

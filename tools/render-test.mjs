@@ -1,6 +1,7 @@
 // Test render of a run of steps as ONE clip, cropped to the scene band, no captions.
 //   node render-test.mjs --steps 3-4 --name scene2 [--scale 2] [--theme dark|light] [--out out/clips] [--no-footer] [--band]
 //   --steps A-B  1-based steps, stitched into ONE mp4 (A-A = a single step)   --scale N  1 = 1920x1080, 2 = 3840x2160   --no-footer  hides the citation line
+//   --web  two files for the site (<name>-4k.mp4 and <name>-1080.mp4, keyframe every --gop frames, default 8)
 //   --still K:T  one PNG of step K at T seconds instead of a video   --band  the old 800 px band crop (default is the full 1920x1080 frame)
 import { chromium } from 'playwright';
 import { spawn, execFileSync } from 'child_process';
@@ -21,19 +22,27 @@ const steps = await page.evaluate(() => window.__anim.steps());
 const crop = full ? { y: 0, h: 1080 } : await page.evaluate(() => window.__anim.crop);
 if (still) {      // --still <step>:<t>  -> one PNG
   const [sk, st] = still.split(':').map(Number);
-  const b64 = await page.evaluate(([k, t, sc]) => { window.__seek(k, t, window.__anim.gtBase(k) + t, k, 0); const c = document.getElementById('c'); return c.toDataURL('image/png').slice(22); }, [sk - 1, st, scale]);
+  const b64 = await page.evaluate(([k, t, sc]) => { window.__seek(k, t, window.__anim.gtAt(k, t), k, 0); const c = document.getElementById('c'); return c.toDataURL('image/png').slice(22); }, [sk - 1, st, scale]);
   fs.writeFileSync(path.join(OUT, name + '.png'), Buffer.from(b64, 'base64')); await browser.close(); process.exit(0);
 }
 // PowerPoint-friendly H.264: High profile, 8-bit 4:2:0, constant frame rate, BT.709 tagged (and converted with that matrix, so colours match the
 // canvas), a keyframe every second, moov atom up front, no audio track.
-const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-',
-  '-vf', 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p,setparams=color_primaries=bt709:color_trc=iec61966-2-1:colorspace=bt709:range=tv',
-  '-c:v', 'libx264', '-profile:v', 'high', '-level', scale > 1.2 ? '5.1' : '4.0', '-crf', '18', '-preset', 'medium', '-g', String(fps), '-bf', '2',
+// --web: one pass writes two files for the website, <name>-4k.mp4 (the render, scale 2) and <name>-1080.mp4 (downscaled),
+// each with a keyframe every --gop frames (default 8) so seeking (the scrub bar) only decodes a few frames.
+const web = process.argv.includes('--web'), gop = String(arg('gop', web ? 8 : fps));
+const COLOR = 'scale=out_color_matrix=bt709:out_range=tv,format=yuv420p,setparams=color_primaries=bt709:color_trc=iec61966-2-1:colorspace=bt709:range=tv';
+const enc = (level, file) => ['-c:v', 'libx264', '-profile:v', 'high', '-level', level, '-crf', '18', '-preset', 'medium', '-g', gop, '-keyint_min', gop, '-bf', '2',
   // transfer tagged sRGB (iec61966-2-1), not BT.709: macOS (PowerPoint, QuickTime) plays a BT.709-tagged clip ~12-15% darker
   // than the same picture shown as a still, so the slide's poster frame flashed brighter for ~0.1 s as playback took over.
   // Tagged sRGB, video and still are shown identically (and at the designed colours). Windows ignores the tag either way.
   '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'iec61966-2-1', '-color_range', 'tv',
-  '-an', '-r', String(fps), '-movflags', '+faststart+write_colr', path.join(OUT, name + '.mp4')], { stdio: ['pipe', 'inherit', 'inherit'] });
+  '-an', '-r', String(fps), '-movflags', '+faststart+write_colr', file];
+const input = ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-framerate', String(fps), '-c:v', 'png', '-i', '-'];
+const ffArgs = web
+  ? [...input, '-filter_complex', `[0:v]split=2[a][b];[a]${COLOR}[A];[b]scale=1920:-2:flags=lanczos,${COLOR}[B]`,
+    '-map', '[A]', ...enc('5.1', path.join(OUT, name + '-4k.mp4')), '-map', '[B]', ...enc('4.0', path.join(OUT, name + '-1080.mp4'))]
+  : [...input, '-vf', COLOR, ...enc(scale > 1.2 ? '5.1' : '4.0', path.join(OUT, name + '.mp4'))];
+const ff = spawn('ffmpeg', ffArgs, { stdio: ['pipe', 'inherit', 'inherit'] });
 const done = new Promise((res, rej) => ff.on('close', c => c ? rej(new Error('ffmpeg ' + c)) : res()));
 for (let k = a - 1; k <= b - 1; k++) {
   const s = steps[k], n = Math.round((s.dur - s.t0) * fps);
@@ -41,7 +50,7 @@ for (let k = a - 1; k <= b - 1; k++) {
     const t = i === n ? s.dur : s.t0 + i / fps;
     const b64 = await page.evaluate(([k, t, y, h, sc, noX]) => {
       const S = window.__anim.steps(), prev = k - 1;
-      window.__seek(k, t, window.__anim.gtBase(k) + t, noX ? k : prev, prev >= 0 ? S[prev].dur : 0);
+      window.__seek(k, t, window.__anim.gtAt(k, t), noX ? k : prev, prev >= 0 ? S[prev].dur : 0);
       const c = document.createElement('canvas'); c.width = 1920 * sc; c.height = h * sc;
       c.getContext('2d').drawImage(document.getElementById('c'), 0, y * sc, 1920 * sc, h * sc, 0, 0, 1920 * sc, h * sc);
       return c.toDataURL('image/png').slice(22);
@@ -50,4 +59,4 @@ for (let k = a - 1; k <= b - 1; k++) {
   }
   console.log('step', k + 1, s.slug, 'done');
 }
-ff.stdin.end(); await done; await browser.close(); console.log('wrote', path.join(OUT, name + '.mp4'));
+ff.stdin.end(); await done; await browser.close(); console.log('wrote', path.join(OUT, name + (web ? '-4k.mp4 / -1080.mp4' : '.mp4')));

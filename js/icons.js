@@ -89,11 +89,11 @@ const ICON_CODE = {
   il1: { call: "glyph(ctx, 'il1', 0, 0, 60, 0, 1)      // js/core/glyphs.js: kind, x, y, size, angle, alpha", pal: 'pc.il1' },
   c1q: { call: "glyph(ctx, 'c1q', 0, 0, 60, 0, 1)      // js/core/glyphs.js: kind, x, y, size, angle, alpha", pal: 'pc.c1q' },
   lipid: { call: 'for (let i = 0; i < 6; i++) {\n  const u = (t * .25 + i / 6) % 1, x = lerp(-40, 40, u), y = Math.sin(u * Math.PI) * -14 + (i % 3) * 5;\n  ctx.beginPath(); ctx.arc(x, y, 3.4 - (i % 2) * .7, 0, TAU);\n  ctx.fillStyle = rgb(PC.lps); ctx.fill();\n  ctx.strokeStyle = rgb(mix(PC.lps, [0, 0, 0], .45), .7); ctx.lineWidth = .7; ctx.stroke();\n}', pal: 'pc.lps' },
-  er: { call: 'mER({ lit: 0 })      // js/scenes/molecules.js · lit: 0..1 ER stress (gold)', pal: 'np.er' },
+  er: { call: 'mER({ lit: 0 })      // js/scenes/molecules.js, lit: 0..1 ER stress (gold)', pal: 'np.er' },
   ribosome: { setup: ['// the S9 schematic pieces (js/scenes/steps.js), flat illustration style'], call: 'flat(() => {\n  ribLarge(0, 32, .88);                 // large subunit\n  ribSmall(0, 46, .88);                 // small subunit\n  mRNA(-176, 150, 40);                  // the strand and its codons\n  tRNA(-55, 14, 1);                     // initiator tRNA on the start codon\n  protein(102, -45, 12);                // the chain coming out (12 amino acids)\n});' },
-  ir: { call: 'mIR({ off: 0 })      // js/scenes/molecules.js · off: 0..1 inactive grey', pal: 'np.ir' },
-  tnfr1: { call: 'mTNFR1({ bound: 0, lit: 0 })      // js/scenes/molecules.js · bound: chains close on TNF-α · lit: active', pal: 'np.tnfr' },
-  syn: { call: 'mSYN({ loss: 0 })      // js/scenes/molecules.js · loss: 0..1 synapse loss', pal: 'np.syn' },
+  ir: { call: 'mIR({ off: 0 })      // js/scenes/molecules.js, off: 0..1 inactive grey', pal: 'np.ir' },
+  tnfr1: { call: 'mTNFR1({ bound: 0, lit: 0 })      // js/scenes/molecules.js, bound: chains close on TNF-α, lit: active', pal: 'np.tnfr' },
+  syn: { call: 'mSYN({ loss: 0 })      // js/scenes/molecules.js, loss: 0..1 synapse loss', pal: 'np.syn' },
 };
 /* The source behind each icon, read from the running code (fn.toString()), grouped by file, so it is always the real thing:
    for a cell, the builder that grows its branches, the arbor code that turns them into outlines, the Cell class that draws it,
@@ -101,7 +101,7 @@ const ICON_CODE = {
 const SRC = (title, fns) => [title, fns.filter(f => typeof f === 'function')];
 const SRC_CELL = builder => [
   SRC('Shape: the branch layout (js/core/builders.js)', [builder, typeof addTw === 'function' ? addTw : null, builder === (typeof buildNeuron === 'function' && buildNeuron) && typeof addP === 'function' ? addP : null]),
-  SRC('Outlines: branches → smooth tapered strands and the soma (js/core/arbor.js)', [typeof evalBr === 'function' ? evalBr : null, typeof smoothTo === 'function' ? smoothTo : null, typeof addStrand === 'function' ? addStrand : null, typeof addSoma === 'function' ? addSoma : null]),
+  SRC('Outlines: branches to smooth tapered strands and the soma (js/core/arbor.js)', [typeof evalBr === 'function' ? evalBr : null, typeof smoothTo === 'function' ? smoothTo : null, typeof addStrand === 'function' ? addStrand : null, typeof addSoma === 'function' ? addSoma : null]),
   SRC('The cell: building and drawing it (js/core/cell.js)', [Cell]),
   SRC('Shading: rim, body and highlight passes (js/core/kit.js)', [paintMembrane]),
   SRC('Edge texture: the glowing rim (js/scenes/texture.js; texgl.js runs the same maths on the GPU)', [rimEdges]),
@@ -122,7 +122,7 @@ function iconSource(it) {
   const groups = (ICON_SRC[it.id] || (() => []))(), out = [];
   for (const [title, fns] of groups) {
     if (!fns.length) continue;
-    out.push('', '', `// ── ${title} ${'─'.repeat(Math.max(4, 96 - title.length))}`, '');
+    out.push('', '', `// ${title}`, '');
     for (const f of fns) { let src = f.toString(); if (/^[\w$]+\s*=>|^\(/.test(src) && f.name) src = `const ${f.name} = ${src};`; out.push(src, ''); }
   }
   return out.join('\n');
@@ -130,7 +130,7 @@ function iconSource(it) {
 function iconCode(it) { return iconUsage(it) + iconSource(it); }
 function iconUsage(it) {
   const C = ICON_CODE[it.id] || { call: '' }, look = iconLook(it.look || it.id), sep = it.sep ? iconLook(it.sep) : 0, L = [];
-  L.push(`// ${it.name}`, '// How to draw it with this repo (github.com/felixmelanson/pkr_anim). Below: the actual code that builds', '// and draws it, file by file. Everything draws into the global ctx.', '');
+  L.push(`// ${it.name}`, '');
   if (C.setup) L.push(...C.setup, '');
   const multi = C.call.includes('\n'), ind = s => s.split('\n').map(x => '    ' + x).join('\n');
   const opts = look ? `{ look: texIdx('${TEX_LOOKS[look]}')${sep ? `, sepLook: texIdx('${TEX_LOOKS[sep]}')` : ''} }` : '';
@@ -140,10 +140,10 @@ function iconUsage(it) {
   L.push('}');
   if (C.pal) {
     const hex = c => '#' + c.map(v => Math.round(v).toString(16).padStart(2, '0')).join('');
-    if (C.pal === 'fl') L.push('', `// stain colours: pPKR ${hex(FL.green)} · DAPI ${hex(FL.blue)} · AβO ${hex(FL.red)}`);
+    if (C.pal === 'fl') L.push('', `// stain colours: pPKR ${hex(FL.green)}, DAPI ${hex(FL.blue)}, AβO ${hex(FL.red)}`);
     else { const v = C.pal.split('.').reduce((o, k) => o && o[k], PALETTES.dark);
       if (Array.isArray(v)) L.push('', `// colour (PALETTES.dark.${C.pal}): ${hex(v)}`);
-      else if (v && v.rim) L.push('', `// colours (PALETTES.dark.${C.pal}):`, `//   outline ${hex(v.rim)} · fill ${hex(v.body)} · highlight ${hex(v.fil)} · nucleus ${hex(v.nuc)}`); }
+      else if (v && v.rim) L.push('', `// colours (PALETTES.dark.${C.pal}):`, `//   outline ${hex(v.rim)}, fill ${hex(v.body)}, highlight ${hex(v.fil)}, nucleus ${hex(v.nuc)}`); }
   }
   if (look) L.push(`// texture: '${TEX_LOOKS[look]}'${sep ? ` (its puncta: '${TEX_LOOKS[sep]}')` : ''}`);
   return L.join('\n');

@@ -1,5 +1,7 @@
 html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
 #c { position: absolute; display: block; }
+/* the rendered clips (video.js) sit exactly over the canvas; clicks pass through to it (a click on the stage advances) */
+#vids video { position: absolute; left: var(--stage-left); top: var(--stage-top); width: var(--stage-w); height: var(--stage-h); display: block; pointer-events: none; background: #000; object-fit: contain; }
 body.render #bridgeDebug { display: none; }
 
 #bridgeDebug {
@@ -44,7 +46,7 @@ body.render #bridgeDebug { display: none; }
 .bridge-debug-axis { color: #8295a1; font-size: 10px; text-align: center; }
 .bridge-debug-copy { width: 100%; margin-top: 1px; }
 
-/* ---------- dock: credit · controls · links, one row under the stage (app.js sets --stage-*, --dock-*, --foot-*) ---------- */
+/* dock: credit, controls, links, one row under the stage (app.js sets --stage-*, --dock-*, --foot-*) */
 :root { --ui: "Avenir Next", "Avenir", "Helvetica Neue", Helvetica, Arial, sans-serif; --blue: #3b82f6; --glass: rgba(10, 13, 18, .58); --line: rgba(255, 255, 255, .09); --foot: rgb(124, 138, 150); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 body.render #dock, body.render #overlay { display: none; }
@@ -84,8 +86,8 @@ body.is-fullscreen #dock .credit, body.is-fullscreen #credits { display: none; }
 body.is-fullscreen.idle #dock { opacity: 0; pointer-events: none; }
 body.is-fullscreen.idle { cursor: none; }
 
-/* ---------- liquid-glass scrub bar (scrub.js): the "Liquid Glass Slider" pen's styles (MIT, © 2026 FGAMER768), in its own units,
-   inside .lg-root which scrub.js shrinks with one scale (0.5): the bar is 200 × 30 px on screen ---------- */
+/* liquid-glass scrub bar (scrub.js): the "Liquid Glass Slider" pen's styles (MIT, © 2026 FGAMER768), in its own units,
+   inside .lg-root which scrub.js shrinks with one scale (0.5): the bar is 200 × 30 px on screen */
 .lscrub { position: relative; width: 200px; height: 30px; cursor: pointer; touch-action: none; outline: none; }
 .lscrub:focus-visible { outline: 2px solid rgba(59, 130, 246, .7); outline-offset: 3px; border-radius: 6px; }
 .lg-root { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
@@ -102,7 +104,7 @@ body.is-fullscreen.idle { cursor: none; }
 .lg-clone-inner::after { width: calc(100% * var(--fill-width, 0) / 100); background: linear-gradient(90deg, #3b82f6, #60a5fa); }
 .lg-thumb-inner { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: inherit; z-index: 3; pointer-events: none; }
 
-/* ---------- panels over the animation (ui-panels.js) ---------- */
+/* panels over the animation (ui-panels.js) */
 #overlay { position: fixed; inset: 0; z-index: 30; display: flex; align-items: center; justify-content: center; font-family: var(--ui); color: #e6edf2; }
 #overlay[hidden], .panel[hidden], .icons-detail[hidden], .icons-list[hidden] { display: none; }
 .panel {

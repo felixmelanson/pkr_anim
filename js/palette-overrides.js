@@ -41,4 +41,4 @@ function palApplyAll() {
   const all = palLoad();
   for (const theme of Object.keys(all)) for (const [path, hex] of Object.entries(all[theme] || {})) if (palDefault(theme, path)) palWrite(theme, path, hexToRgbArr(hex));
 }
-palApplyAll();
+if (!window.PROJECT_LOOK_ONLY) palApplyAll();      // the viewer (index.html) sets PROJECT_LOOK_ONLY: everyone sees the same colours, whatever this browser saved

@@ -297,6 +297,7 @@ function cultureMedium(S, gt, P = {}) {
 
 function drawCulture(S, gt) {
   const a = S.cultA; if (a <= .004) return;
+  { const C = S.conf; if (C && C.a >= .999 && (C.cover ?? 1) >= .999 && !C.own) return; }      // the confocal view's opaque field covers it all: nothing here would show
   if (S.dish && S.dish.on) { ctx.save(); ctx.globalAlpha *= a; drawDishes(S, gt); ctx.restore(); return; }
   const z = S.cam.z, F = LAY.field;
   ctx.save(); ctx.globalAlpha *= a;

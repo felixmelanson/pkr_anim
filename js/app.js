@@ -17,12 +17,12 @@ setClayMax(1.6);     // cells that fill the frame (scene 1, the push-in) keep th
 // All scene art stays inside this band of the 1920×1080 stage; the caption sits above it and the citation below.
 // tools/render.mjs --crop trims clips to exactly this band.
 const CROP = FULL ? { y: 0, h: 1080 } : { y: 150, h: 800 };      // full-frame stage by default (culture.js); ?full=0 restores the 800 px band
-let SCL = 1, DPR = 1;
+let SCL = 1, DPR = 1, DPR_CAP = 2;      // DPR_CAP: lowered to 1.5 by the adaptive quality, as its last step
 // Viewer layout: the stage as wide as the window allows, a dock row under it (footer credit · controls · footer links); the dock
 // row uses the in-animation footer's left / right margin and type, so it reads as the same footer. On narrow windows the credit
 // and links drop under the controls. Fullscreen: the stage alone, centred, with the controls over it. (--stage-*, --dock-*: CSS)
 function resize() {
-  DPR = RENDER_MODE ? 1 : Math.min(2, window.devicePixelRatio || 1);
+  DPR = RENDER_MODE ? 1 : Math.min(paused ? 2 : DPR_CAP, window.devicePixelRatio || 1);      // paused: always full sharpness
   const w = innerWidth, h = innerHeight, fs = !RENDER_MODE && !!document.fullscreenElement, narrow = w < 1000;
   const dockH = RENDER_MODE || fs ? 0 : narrow ? 104 : 66;
   SCL = RENDER_MODE ? (+QS.get('scale') || 1) : Math.min(w / W, (h - dockH) / H);
@@ -36,6 +36,7 @@ function resize() {
   set('--dock-top', (top + ch) + 'px'); set('--dock-h', room + 'px'); set('--foot-x', (TITLE_X * SCL) + 'px'); set('--foot-fs', Math.max(12, 19 * SCL) + 'px');
   document.body.classList.toggle('is-fullscreen', fs); document.body.classList.toggle('narrow', narrow);
 }
+IMG_READY.then(() => requestAnimationFrame(() => document.body.classList.add('laid-out')));      // the dock shows with the first frame
 document.addEventListener('fullscreenchange', resize);
 addEventListener('resize', resize); resize();
 
@@ -191,13 +192,14 @@ function render(k, t, gt) {
 }
 
 // Play / pause / scrub: each frame is a pure function of (step, t, gt).
-let paused = false, pauseT = 0, pauseGT = 0;
+var paused = false, pauseT = 0, pauseGT = 0;      // var: resize() reads paused before this line runs
 function setPaused(p) {
   p = !!p; if (p === paused) return;
   const now = performance.now();
   if (p) { pauseT = (now - stepStart) / 1000; pauseGT = now / 1000; }
   else stepStart = now - pauseT * 1000;
   paused = p;
+  if (DPR_CAP < 2) resize();      // the adaptive quality's lower density is for playback only
   onPlayStateChange();
 }
 function scrubTo(t) {
@@ -210,8 +212,27 @@ function onStepChange() {}
 function onPlayStateChange() {}
 function onThemeChange() {}
 
+/* Adaptive quality, only for browsers that cannot keep up (Firefox, slow machines): while playing, the frame time is watched;
+   when it stays slow, cells are re-textured less often (TEX_N: every 3rd frame → up to every 16th; the reuse is invisible at these
+   speeds) and, as a last step, the stage is drawn at 1.5× instead of 2× pixel density. It steps back up when there is headroom.
+   Chrome on a recent Mac stays at level 0, exactly as before. */
+// levels 0-4: TEX_N; level 5: 1.5× pixel density; level 6: 1× while playing (paused: full sharpness)
+const QUAL_N = [3, 5, 8, 12, 16]; let QUAL = 0, QUAL_EMA = 16, QUAL_LAST = 0, QUAL_COUNT = 0, QUAL_GOOD = 0;
+function qualityTick(now) {
+  if (RENDER_MODE || paused || STAGE_FROZEN || document.hidden) { QUAL_LAST = 0; return; }
+  if (QUAL_LAST) { const dt = Math.min(250, now - QUAL_LAST); QUAL_EMA += (dt - QUAL_EMA) * .15; }
+  QUAL_LAST = now; if (now - QUAL_COUNT < 600) return; QUAL_COUNT = now;      // judged every 0.6 s (by time, so a slow browser adapts as fast as a quick one)
+  if (QUAL_EMA > 27 && QUAL < QUAL_N.length + 1) { QUAL = Math.min(QUAL_N.length + 1, QUAL + (QUAL_EMA > 70 ? 2 : 1)); QUAL_GOOD = 0; applyQuality(); }
+  else if (QUAL_EMA < 13 && QUAL > 0) { if (++QUAL_GOOD >= 3) { QUAL--; QUAL_GOOD = 0; applyQuality(); } }
+  else QUAL_GOOD = 0;
+}
+function applyQuality() {
+  TEX_N = QUAL_N[Math.min(QUAL, QUAL_N.length - 1)];
+  const cap = QUAL > QUAL_N.length ? 1 : QUAL === QUAL_N.length ? 1.5 : 2; if (cap !== DPR_CAP) { DPR_CAP = cap; resize(); }
+}
 let STAGE_FROZEN = false, PAUSE_KEY = '';      // STAGE_FROZEN: a panel is open over the stage (ui-panels.js): nothing is redrawn
 function frame(now) {
+  qualityTick(now);
   if (!frozen && !STAGE_FROZEN) {
     if (paused) {      // paused: draw only when something changed (step, scrub position, size), not the same picture every frame
       const key = `${step}|${pauseT}|${pauseGT}|${cv.width}x${cv.height}|${prevStep}`;

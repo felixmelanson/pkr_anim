@@ -153,15 +153,24 @@ function aboPuncta(c, n, i, strands, R0, cr, neon, k = CONF.redK, ka = CONF.redA
 function confGlow(S, gt, C) {
   const doG = CONF.gGlow > 0 && C.g > .004, doR = CONF.redGlow > 0 && C.r > .004, doB = (CONF.bGlow || 0) > 0 && C.b > .004; if (!doG && !doR && !doB) return;
   const main = ctx, M = main.getTransform(), px = main.canvas.width / W, A = main.globalAlpha;
+  // live playback: the glow (three redraws and nine blurs) is rebuilt on the textures' schedule (texture.js TEX_N) and reused in
+  // between while the view, the stains and pPKR stay put; offline renders always rebuild it
+  const live = typeof TEX_REUSE !== 'undefined' && TEX_REUSE, key = [M.a, M.b, M.c, M.d, M.e, M.f, C.g, C.b, C.r, S.ppkr, S.spread || 0, S.anomNeuron3Y || 0].map(v => (+v).toFixed(3)).join('|') + '|' + main.canvas.width;
+  const G = GLOW_CACHE;
+  if (live && G.cv && G.key === key && TEX_FRAME - G.frame < TEX_N) { main.save(); main.setTransform(1, 0, 0, 1, 0, 0); main.globalCompositeOperation = 'lighter'; main.globalAlpha = A; main.drawImage(G.cv, 0, 0); main.restore(); return; }
+  const out = live ? (() => { if (!G.cv) G.cv = document.createElement('canvas'); if (G.cv.width !== main.canvas.width || G.cv.height !== main.canvas.height) { G.cv.width = main.canvas.width; G.cv.height = main.canvas.height; } const g = G.cv.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, G.cv.width, G.cv.height); return g; })() : main, OA = live ? 1 : A;
   const pass = (fn, blurs) => {
     const E = fluoLayer(1, main); E.setTransform(M); E.globalCompositeOperation = 'lighter';
     NEU.forEach((n, i) => { E.save(); E.translate(spX(n.x, S.spread || 0) - n.x, i === 3 ? (S.anomNeuron3Y || 0) : 0); fn(E, n, i); E.restore(); });
-    for (const [a, b] of blurs) { main.save(); main.setTransform(1, 0, 0, 1, 0, 0); main.globalCompositeOperation = 'lighter'; main.globalAlpha = A * a; drawFiltered(main, `blur(${(b * px).toFixed(1)}px)`, E.canvas, 0, 0, E.canvas.width, E.canvas.height, 0, 0, E.canvas.width, E.canvas.height); main.restore(); }
+    for (const [a, b] of blurs) { out.save(); out.setTransform(1, 0, 0, 1, 0, 0); out.globalCompositeOperation = 'lighter'; out.globalAlpha = OA * a; drawFiltered(out, `blur(${(b * px).toFixed(1)}px)`, E.canvas, 0, 0, E.canvas.width, E.canvas.height, 0, 0, E.canvas.width, E.canvas.height); out.restore(); }
   };
+  const finish = () => { if (!live) return; G.key = key; G.frame = TEX_FRAME; main.save(); main.setTransform(1, 0, 0, 1, 0, 0); main.globalCompositeOperation = 'lighter'; main.globalAlpha = A; main.drawImage(G.cv, 0, 0); main.restore(); };
   if (doG) pass((E, n, i) => fluoGreen(E, n, i, S, gt, C, false), [[.45 * CONF.gGlow, 2], [.35 * CONF.gGlow, 8], [.2 * CONF.gGlow, 24]]);
   if (doB) pass((E, n, i) => fluoNucAbo(E, n, i, S, gt, { ...C, g: 0, r: 0 }, false), [[.7 * CONF.bGlow, 2.5], [.5 * CONF.bGlow, 7], [.3 * CONF.bGlow, 18]]);
   if (doR) pass((E, n, i) => { if (BOUND.includes(i)) n.draw(E, { t: gt, noPuncta: true, fluo: { col: FL.red, a: 0 }, after: (c, strands, R0) => aboPuncta(c, n, i, strands, R0, C.r, false) }); }, [[.8 * CONF.redGlow, 2.5], [.5 * CONF.redGlow, 7], [.25 * CONF.redGlow, 18]]);
+  finish();
 }
+const GLOW_CACHE = { cv: null, key: '', frame: -99 };
 /* Draw the neurons in the current look. Called inside drawConfocal with the field clip set, worldXf applied and
    globalAlpha = C.a. Returns false for the Flat look so the original code runs. */
 function drawFluoLook(S, gt, C) {

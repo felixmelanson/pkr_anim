@@ -89,7 +89,10 @@ function LiquidScrub(el, o = {}) {
   s.md = Math.max(...pc.map(Math.abs));
   el.querySelector('.lg-disp').setAttribute('href', imageDataToDataURL(calculateDisplacementMap2D(c.w, c.h, c.w, c.h, c.r, c.bw, s.md || 1, pc)));
   el.querySelector('.lg-spec').setAttribute('href', imageDataToDataURL(calculateSpecularHighlight(c.w, c.h, c.r, c.bw)));
-  if (useBackdropFilter) { inner.style.backdropFilter = inner.style.webkitBackdropFilter = `url(#${uid})`; el.classList.add('lg-backdrop'); } else clone.style.filter = `url(#${uid})`;
+  // the lens filter is only switched on while the thumb is (or is becoming) glass: at rest it is a plain white pill, and a filter that
+  // is on but invisible still costs a re-filter whenever the thumb moves with playback
+  const lensOn = on => { const f = on ? `url(#${uid})` : 'none'; if (useBackdropFilter) { inner.style.backdropFilter = inner.style.webkitBackdropFilter = f; } else clone.style.filter = f; };
+  if (useBackdropFilter) el.classList.add('lg-backdrop'); let lens = false;
 
   function upd() {      // the pen's upd(), with the clone lined up in the slider's own coordinates
     fi.style.width = s.val + '%';
@@ -107,6 +110,7 @@ function LiquidScrub(el, o = {}) {
     const sc = sp.sc.update(dt), bo = sp.bo.update(dt);
     th.style.transform = `scale(${sc})`; th.style.backgroundColor = `rgba(255,255,255,${bo})`;
     clone.style.opacity = 1 - bo; dmap.setAttribute('scale', s.md * sp.sr.update(dt));
+    const want = bo < .995; if (want !== lens) { lens = want; lensOn(want); }
     if (!Object.values(sp).every(x => x.isSettled())) af = requestAnimationFrame(loop); else af = null;
   }
   // the pen's pointer mapping, in screen pixels (× SCALE)

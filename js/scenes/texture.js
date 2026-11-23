@@ -44,7 +44,7 @@ const TEX_URL = (() => {
    ?eltex=0 turns element textures off. */
 const TEX_EL = (() => {
   const out = {}, base = (typeof LOOK !== 'undefined' && LOOK.elements) || {};
-  let local = {}; try { local = JSON.parse(localStorage.getItem('pkr.gallery.v1')) || {}; } catch (e) { }
+  let local = {}; if (!window.PROJECT_LOOK_ONLY) try { local = JSON.parse(localStorage.getItem('pkr.gallery.v1')) || {}; } catch (e) { }
   for (const id of new Set([...Object.keys(base), ...Object.keys(local)])) { const t = (local[id] && local[id].tex != null) ? local[id].tex : base[id] && base[id].tex; const k = texIdx(t); if (k > 0) out[id] = k; }
   return out;
 })();
@@ -156,7 +156,8 @@ function texEl(id, c, fn, cx = 0, cy = 0, r = 60, sepId) {
 /* Live playback cache (GPU path only, so offline renders never use it): each textured element is re-textured every TEX_N-th frame
    (staggered across elements); in between its last result is redrawn where the element now is. The cells move a pixel or so a
    frame, so a result one or two frames old is invisible, and the frame costs a third. Paused or scrubbing: always fresh. */
-const TEX_CACHE = new Map(), TEX_N = 3; let TEX_FRAME = 0, TEX_REUSE = false, TEX_CVID = 0;
+const TEX_CACHE = new Map(); let TEX_N = 3, TEX_FRAME = 0,      // TEX_N: app.js raises it on slow browsers (adaptive quality)
+    TEX_REUSE = false, TEX_CVID = 0;
 const texKey = (c, id, sepId, cx, cy, r) => `${c.canvas.__tid || (c.canvas.__tid = ++TEX_CVID)}|${id}|${sepId || ''}|${cx.toFixed(1)}|${cy.toFixed(1)}|${r.toFixed(1)}`;
 function texFrameTick(playing) {      // app.js calls this once per frame
   TEX_FRAME++; TEX_REUSE = playing && TEX_GPU();

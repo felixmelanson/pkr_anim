@@ -19,9 +19,11 @@ function filtTmp(i, w, h) {
   const g = c.getContext('2d'); g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.clearRect(0, 0, c.width, c.height); g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
   return g;
 }
+// Firefox blurs on the CPU: its ctx.filter blur is correct but slow, so wide blurs take the fast path below there too
+const GECKO = typeof navigator !== 'undefined' && /Gecko\/\d/.test(navigator.userAgent) && !/like Gecko/.test(navigator.userAgent);
 function drawFiltered(ctx, filter, img, sx, sy, sw, sh, dx, dy, dw, dh) {
   if (!filter || filter === 'none') return ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-  if (CANVAS_FILTER) { const keep = ctx.filter; ctx.filter = filter; ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh); ctx.filter = keep; return; }
+  if (CANVAS_FILTER && !(GECKO && /blur\(([3-9]|\d\d)/.test(filter))) { const keep = ctx.filter; ctx.filter = filter; ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh); ctx.filter = keep; return; }
   let src = img, x = sx, y = sy, w = sw, h = sh;
   const bm = /brightness\(([\d.]+)\)/.exec(filter);
   if (bm) {      // colour × k on a copy, alpha untouched

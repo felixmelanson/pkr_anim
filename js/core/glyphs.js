@@ -57,8 +57,35 @@ function gC1q(c, s, a, col = PC.c1q) {       // C1q: "bouquet of tulips", collag
   }
   for (const [hx, hy] of heads) { c.beginPath(); c.arc(hx, hy, s * .14, 0, TAU); c.fill(); }
 }
+/* Live playback draws the medium's glyphs (hundreds of AβOs and TNF-α in the dish scenes) from sprites: each glyph type is drawn once
+   per size (quarter-octave steps) and angle (3° steps) into a small canvas, clay and all, and then stamped at its exact position,
+   size and angle. Only the clay lighting is that of the nearest 3° step. Offline renders and the icons panel draw every glyph
+   (GLYPH_SPRITES_OK: live viewer, TEX_EL_ON, GPU path). */
+const GLYPH_SPR = new Map(), GLYPH_STEPS = 120;
+const GLYPH_SPRITES_OK = () => typeof TEX_GPU === 'function' && TEX_GPU() && typeof TEX_EL_ON !== 'undefined' && TEX_EL_ON && !(typeof TEX_DEPTH !== 'undefined' && TEX_DEPTH);
+function glyphRaw(c, type, s, a) {
+  switch (type) { case 'tnf': gTNF(c, s, a); break; case 'abo': gABO(c, s, a); break; case 'ab': gAb(c, s * 1.2, a); break; case 'tnfb': gBound(c, s, a); break; case 'il1': gIL1(c, s, a); break; case 'c1q': gC1q(c, s * 1.35, a); break; }
+}
+function glyphSprite(c, type, x, y, s, rot, a) {
+  const m = c.getTransform(), k = Math.hypot(m.a, m.b); if (!(k > 0) || Math.abs(m.a * m.d - m.b * m.c - k * k) > 1e-3 * k * k) return false;      // uniform scale + rotation only
+  const ds = s * k; if (ds < 2 || ds > 400) return false;
+  const sb = Math.pow(2, Math.round(Math.log2(ds) * 4) / 4), ang = rot + Math.atan2(m.b, m.a), step = TAU / GLYPH_STEPS, ab = Math.round(ang / step), res = ang - ab * step;
+  const clayOn = Object.prototype.hasOwnProperty.call(c, 'fill'), key = `${type}|${sb.toFixed(2)}|${((ab % GLYPH_STEPS) + GLYPH_STEPS) % GLYPH_STEPS}|${clayOn ? 1 : 0}|${THEME.light ? 1 : 0}`;
+  let spr = GLYPH_SPR.get(key);
+  if (!spr) {
+    const side = Math.ceil(sb * 3.6) + 12, cv = document.createElement('canvas'); cv.width = cv.height = side;
+    const g = cv.getContext('2d'); g.translate(side / 2, side / 2); g.rotate(ab * step); g.scale(sb / s, sb / s);
+    const fn = () => glyphRaw(g, type, s, 1); if (clayOn) withClay(g, !THEME.light, fn); else fn();
+    spr = { cv, side }; GLYPH_SPR.set(key, spr); if (GLYPH_SPR.size > 2400) GLYPH_SPR.delete(GLYPH_SPR.keys().next().value);
+  }
+  const f = ds / sb, dx = m.a * x + m.c * y + m.e, dy = m.b * x + m.d * y + m.f, h = spr.side * f / 2;
+  c.save(); c.setTransform(1, 0, 0, 1, dx, dy); c.rotate(res); c.globalAlpha *= Math.min(1, a); c.imageSmoothingQuality = 'high';
+  c.drawImage(spr.cv, -h, -h, h * 2, h * 2); c.restore();
+  return true;
+}
 function glyph(c, type, x, y, s, rot, a) {
   if (a <= .01) return;
+  if (GLYPH_SPRITES_OK() && (typeof texElLook !== 'function' || !texElLook(type)) && glyphSprite(c, type, x, y, s, rot, a)) return;
   const draw = c => {
     c.save(); c.translate(x, y); c.rotate(rot);
     switch (type) {

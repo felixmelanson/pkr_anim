@@ -34,6 +34,7 @@
   });
   el.full.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen());
   document.addEventListener('fullscreenchange', refreshFullIcon);
+  if (!document.fullscreenEnabled) document.body.classList.add('no-fs');      // iPhone Safari has no fullscreen API: hide the button
 
   // autoplay: at the end of a clip, go straight on to the next (the next clip is preloaded and opens on this one's last frame, so
   // it plays as one film). Off by default; the choice is remembered in this browser. A toggles it.

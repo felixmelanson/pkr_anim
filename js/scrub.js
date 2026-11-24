@@ -8,12 +8,12 @@
    Changes for the viewer: the track width follows the bar, a press on the track jumps there, and set(v) follows playback.
    LiquidScrub(el, { onInput(v) }) → { set(v), dragging() }; v is 0..1. */
 function LiquidScrub(el, o = {}) {
-  const SCALE = (el.clientHeight || 30) / 60, TW = Math.round(el.clientWidth / SCALE) || 400;      // the pen's units (everything below is the pen's numbers), scaled to the bar's CSS height
+  const SCALE = (el.clientHeight || 30) / 60; let TW = Math.round(el.clientWidth / SCALE) || 400;      // the pen's units (everything below is the pen's numbers), scaled to the bar's CSS height
   const c = { w: 90, h: 60, r: 30, tw: TW, th: 18, bw: 16, gt: 80, ri: 1.45, sr: .65, sd: .9 };      // sr: the resting thumb's scale (the pen's .6, a little larger here); sd: pressed (the pen's 1, a gentler grow)
   const uid = 'lgs' + Math.random().toString(36).slice(2, 7);
   // the drawn bar is inset by half the resting thumb at each end, so it spans exactly the thumb centre's travel: the thumb stays
   // centred on the blue edge all the way (at 0 on the bar's left end, at 100 on its right end)
-  const HALF = c.w * c.sr / 2, TRW = c.tw - 2 * HALF;
+  const HALF = c.w * c.sr / 2; let TRW = c.tw - 2 * HALF;
   el.innerHTML = `
     <div class="lg-root" style="width:${c.tw}px;height:${c.h}px;transform:scale(${SCALE})">
       <div class="lg-track" style="left:${HALF}px;width:${TRW}px"><div class="lg-track-inner"><div class="lg-fill"></div></div></div>
@@ -138,6 +138,12 @@ function LiquidScrub(el, o = {}) {
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return; e.preventDefault(); e.stopPropagation();
     s.val = Math.max(0, Math.min(100, s.val + (e.key === 'ArrowRight' ? 1 : -1) * (e.shiftKey ? 10 : 2))); upd(); o.onInput && o.onInput(s.val / 100);
   });
+  // the bar's width follows its box (on small screens it takes whatever the buttons leave): re-measure and re-lay the track
+  const fit = () => {
+    const tw = Math.round(el.clientWidth / SCALE); if (!tw || tw === c.tw) return;
+    c.tw = TW = tw; TRW = c.tw - 2 * HALF; root.style.width = c.tw + 'px'; tr.style.width = TRW + 'px'; upd();
+  };
+  if (window.ResizeObserver) new ResizeObserver(fit).observe(el);
   upd(); af = requestAnimationFrame(loop);
   return { set(x) { if (s.pd) return; const v = Math.max(0, Math.min(100, x * 100)); if (Math.abs(v - s.val) < .01) return; s.val = v; upd(); }, dragging: () => s.pd };
 }

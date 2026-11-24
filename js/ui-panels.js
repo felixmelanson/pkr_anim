@@ -56,7 +56,8 @@
   // the viewer runs the full height of the code panel beside it (its width: as tall as that, at most half the body); the canvas
   // matches it pixel for pixel, so nothing is stretched, and the icon is fitted to both sides (a tall neuron uses the height)
   function sizeBig() {
-    const body = stage.parentElement.getBoundingClientRect(), h = Math.max(120, Math.floor(body.height)), w = Math.max(120, Math.floor(Math.min(body.height, body.width * .5)));
+    const body = stage.parentElement.getBoundingClientRect(), col = getComputedStyle(stage.parentElement).flexDirection === 'column';      // phones: the viewer on top, full width, at most half the height
+    const w = Math.max(120, Math.floor(col ? body.width : Math.min(body.height, body.width * .5))), h = Math.max(120, Math.floor(col ? Math.min(body.width, body.height * .5) : body.height));
     stage.style.width = w + 'px'; stage.style.height = h + 'px';
     const nw = Math.min(2600, Math.round(w * dpr())), nh = Math.min(2600, Math.round(h * dpr()));
     big.style.width = w + 'px'; big.style.height = h + 'px'; if (big.width !== nw || big.height !== nh) { big.width = nw; big.height = nh; }

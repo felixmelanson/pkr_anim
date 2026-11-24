@@ -23,8 +23,8 @@ let SCL = 1, DPR = 1, DPR_CAP = 2;      // DPR_CAP: lowered to 1.5 by the adapti
 // and links drop under the controls. Fullscreen: the stage alone, centred, with the controls over it. (--stage-*, --dock-*: CSS)
 function resize() {
   DPR = RENDER_MODE ? 1 : Math.min(paused ? 2 : DPR_CAP, window.devicePixelRatio || 1);      // paused: always full sharpness
-  const w = innerWidth, h = innerHeight, fs = !RENDER_MODE && !!document.fullscreenElement, narrow = w < 1000;
-  const dockH = RENDER_MODE || fs ? 0 : narrow ? 130 : 90;
+  const w = innerWidth, h = innerHeight, fs = !RENDER_MODE && !!document.fullscreenElement, narrow = w < 1000, phone = w < 640;      // phone: controls, then the credit, then the links, each on its own row
+  const dockH = RENDER_MODE || fs ? 0 : phone ? 150 : narrow ? 130 : 90;
   SCL = RENDER_MODE ? (+QS.get('scale') || 1) : Math.min(w / W, (h - dockH) / H);
   const cw = W * SCL, ch = H * SCL, left = (w - cw) / 2, room = Math.min(h - ch, dockH + 60);      // room: the stage and its dock are centred together
   const top = RENDER_MODE || fs ? (h - ch) / 2 : Math.max(0, (h - ch - room) / 2);
@@ -34,7 +34,7 @@ function resize() {
   const R = document.documentElement.style, set = (k, v) => R.setProperty(k, v);
   set('--stage-left', left + 'px'); set('--stage-top', top + 'px'); set('--stage-w', cw + 'px'); set('--stage-h', ch + 'px');
   set('--dock-top', (top + ch) + 'px'); set('--dock-h', room + 'px'); set('--foot-x', (TITLE_X * SCL) + 'px'); set('--foot-y', (FOOT_Y * SCL) + 'px'); set('--foot-fs', Math.max(12, 19 * SCL) + 'px');
-  document.body.classList.toggle('is-fullscreen', fs); document.body.classList.toggle('narrow', narrow);
+  document.body.classList.toggle('is-fullscreen', fs); document.body.classList.toggle('narrow', narrow); document.body.classList.toggle('phone', phone); document.body.classList.toggle('compact', cw < 700);
 }
 IMG_READY.then(() => requestAnimationFrame(() => document.body.classList.add('laid-out')));      // the dock shows with the first frame
 document.addEventListener('fullscreenchange', resize);

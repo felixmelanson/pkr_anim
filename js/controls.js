@@ -2,7 +2,7 @@
 // On-screen control bar: previous / play-pause / next, the liquid-glass scrub bar (scrub.js), the step counter, replay and
 // fullscreen. Connects the buttons in index.html to the playback functions in app.js. Dark only (no theme toggle).
 (function () {
-  const scrubMax = () => (STEPS[step].dur || 30) + 1;   // seconds; each step's settle time + a little
+  const scrubMax = () => STEPS[step].dur || 30;   // seconds: the bar's end is the clip's last frame
   const $ = id => document.getElementById(id);
   const el = { prev: $('ctlPrev'), play: $('ctlPlay'), next: $('ctlNext'), replay: $('ctlReplay'), full: $('ctlFull'), stepLabel: $('stepLabel') };
 

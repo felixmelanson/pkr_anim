@@ -177,11 +177,11 @@ function iconFit(it) {
     }
   } finally { ctx = keep; TEX_EL_ON = keepTex; }
   if (x1 < x0) { x0 = y0 = S / 2 - 50; x1 = y1 = S / 2 + 50; }
-  return ICON_FIT[it.id] = { cx: ((x0 + x1) / 2 - S / 2) / k, cy: ((y0 + y1) / 2 - S / 2) / k, span: Math.max(x1 - x0, y1 - y0) / k };
+  return ICON_FIT[it.id] = { cx: ((x0 + x1) / 2 - S / 2) / k, cy: ((y0 + y1) / 2 - S / 2) / k, sx: (x1 - x0) / k, sy: (y1 - y0) / k };
 }
 // paint one icon into a canvas: fitted, transparent background, through its texture
 function paintIcon(cv, it, t, playing, margin = 1.16) {
-  const g = cv.getContext('2d'), f = iconFit(it), s = Math.min(cv.width, cv.height) / (f.span * margin);
+  const g = cv.getContext('2d'), f = iconFit(it), s = Math.min(cv.width / f.sx, cv.height / f.sy) / margin;      // fitted to both sides of the canvas
   g.setTransform(1, 0, 0, 1, 0, 0); g.clearRect(0, 0, cv.width, cv.height);
   g.setTransform(s, 0, 0, s, cv.width / 2 - f.cx * s, cv.height / 2 - f.cy * s);
   const look = iconLook(it.look || it.id), sepLook = it.sep ? iconLook(it.sep) : undefined, keep = ctx, keepTex = TEX_EL_ON;

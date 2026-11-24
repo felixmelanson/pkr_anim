@@ -53,12 +53,13 @@
     while (paintQ.length && performance.now() - t1 < 24) { const i = paintQ.shift(); paintIcon(tiles[i], ICONS[i], 0, false); }
     if (paintQ.length) requestAnimationFrame(paintSome);
   }
-  // the viewer is a square (CSS); the canvas matches it pixel for pixel, so nothing is ever stretched
+  // the viewer runs the full height of the code panel beside it (its width: as tall as that, at most half the body); the canvas
+  // matches it pixel for pixel, so nothing is stretched, and the icon is fitted to both sides (a tall neuron uses the height)
   function sizeBig() {
-    // a square in CSS pixels that fits the box, centred: whatever shape the box ends up (narrow panels, Firefox), the icon is never squashed
-    const body = stage.parentElement.getBoundingClientRect(), side = Math.max(120, Math.floor(Math.min(body.height, body.width * .5))), n = Math.min(2600, Math.round(side * dpr()));
-    stage.style.width = stage.style.height = side + 'px';      // the frame is a square too (CSS aspect-ratio gave way to max-width on wide panels)
-    big.style.width = big.style.height = side + 'px'; if (big.width !== n || big.height !== n) { big.width = big.height = n; }
+    const body = stage.parentElement.getBoundingClientRect(), h = Math.max(120, Math.floor(body.height)), w = Math.max(120, Math.floor(Math.min(body.height, body.width * .5)));
+    stage.style.width = w + 'px'; stage.style.height = h + 'px';
+    const nw = Math.min(2600, Math.round(w * dpr())), nh = Math.min(2600, Math.round(h * dpr()));
+    big.style.width = w + 'px'; big.style.height = h + 'px'; if (big.width !== nw || big.height !== nh) { big.width = nw; big.height = nh; }
   }
   const drawBig = () => { if (iconDetail >= 0) { sizeBig(); paintIcon(big, ICONS[iconDetail], tNow, playing, 1.1); } };
   function iconsShow(i) {

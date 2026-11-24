@@ -47,7 +47,7 @@ body.render #bridgeDebug { display: none; }
 .bridge-debug-copy { width: 100%; margin-top: 1px; }
 
 /* dock: credit, controls, links, one row under the stage (app.js sets --stage-*, --dock-*, --foot-*) */
-:root { --ui: "Avenir Next", "Avenir", "Helvetica Neue", Helvetica, Arial, sans-serif; --blue: #3b82f6; --glass: rgba(10, 13, 18, .58); --line: rgba(255, 255, 255, .09); --foot: rgb(124, 138, 150); }
+:root { --ui: "Avenir Next", "Avenir", "Helvetica Neue", Helvetica, Arial, sans-serif; --blue: #3b82f6; --glass: rgba(8, 9, 11, .62); --bar: #08090b; --fill: linear-gradient(90deg, #1f7bff, #4ea0ff); --track: rgba(255, 255, 255, .07); --line: rgba(255, 255, 255, .09); --foot: rgb(124, 138, 150); }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 body.render #dock, body.render #overlay { display: none; }
 #dock {
@@ -62,18 +62,19 @@ body.render #dock, body.render #overlay { display: none; }
 #credits button { appearance: none; border: none; background: none; padding: 2px 0; cursor: pointer; border-bottom: 1px solid transparent; transition: color .15s, border-color .15s; }
 #credits button:hover { color: #e6edf2; border-bottom-color: rgba(230, 237, 242, .45); }
 #controls {
-  justify-self: center; display: flex; align-items: center; gap: 8px; padding: 7px 12px;
-  border-radius: 9px; background: #0a0d11; border: 1px solid var(--line); box-shadow: 0 10px 30px rgba(0, 0, 0, .35);      /* solid: it sits on black, and a backdrop blur here cost Firefox a re-blur every frame */
+  justify-self: center; display: flex; align-items: center; gap: 8px; padding: 13px 20px;
+  border-radius: 999px; background: linear-gradient(180deg, #0b0c0f, #07080a); border: 1px solid rgba(255, 255, 255, .1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04), 0 12px 34px rgba(0, 0, 0, .55);      /* a near-black pill; solid, not blurred */      /* solid: it sits on black, and a backdrop blur here cost Firefox a re-blur every frame */
 }
 body.is-fullscreen #controls { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }      /* over the stage: frosted */
 #controls button {
-  appearance: none; box-sizing: border-box; border: none; background: rgba(255, 255, 255, .06); color: #e0e8ee;
-  width: 34px; height: 30px; border-radius: 5px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s ease;
+  appearance: none; box-sizing: border-box; border: none; background: linear-gradient(180deg, rgba(255, 255, 255, .11), rgba(255, 255, 255, .065)); color: #eef2f6;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px rgba(255, 255, 255, .035), 0 2px 6px rgba(0, 0, 0, .35);
+  width: 50px; height: 32px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s ease;
 }
-#controls button:hover { background: rgba(255, 255, 255, .15); }
-#controls button:active { background: rgba(255, 255, 255, .24); }
-#controls button svg { display: block; }
-#stepLabel { font-size: 12.5px; color: #8a97a4; min-width: 54px; text-align: center; letter-spacing: .3px; }
+#controls button:hover { background: linear-gradient(180deg, rgba(255, 255, 255, .15), rgba(255, 255, 255, .09)); }
+#controls button:active { background: rgba(255, 255, 255, .2); }
+#controls button svg { display: block; width: 20px; height: 20px; }
+#stepLabel { font: 600 15px var(--ui); font-variant-numeric: tabular-nums; color: #b6bfca; min-width: 64px; text-align: center; letter-spacing: .4px; }
 body.laid-out #dock { visibility: visible; opacity: 1; }      /* hidden until app.js has placed it (no flash in the top-left corner while the page loads) */
 /* narrow windows: controls on top, credit and links under them */
 body.narrow #dock { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; row-gap: 12px; align-content: center; }
@@ -87,21 +88,21 @@ body.is-fullscreen.idle #dock { opacity: 0; pointer-events: none; }
 body.is-fullscreen.idle { cursor: none; }
 
 /* liquid-glass scrub bar (scrub.js): the "Liquid Glass Slider" pen's styles (MIT, © 2026 FGAMER768), in its own units,
-   inside .lg-root which scrub.js shrinks with one scale (0.5): the bar is 200 × 30 px on screen */
-.lscrub { position: relative; width: 200px; height: 30px; cursor: pointer; touch-action: none; outline: none; }
+   inside .lg-root which scrub.js scales as a whole to the bar's height (48 px here: scale 0.8) */
+.lscrub { position: relative; width: 380px; height: 48px; margin: -6px -5px -6px 12px;      /* negative: the bar's inset ends (half a thumb each) count as the gap to the buttons */ cursor: pointer; touch-action: none; outline: none; }
 .lscrub:focus-visible { outline: 2px solid rgba(59, 130, 246, .7); outline-offset: 3px; border-radius: 6px; }
 .lg-root { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
-.lg-track { position: absolute; height: 18px; left: 0; top: 21px; background-color: rgba(255, 255, 255, .05); border-radius: 100px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, .5); }
+.lg-track { position: absolute; height: 18px; left: 0; top: 21px; background-color: var(--track); border-radius: 100px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, .5); }
 .lg-track-inner { width: 100%; height: 100%; overflow: hidden; border-radius: 100px; }
-.lg-fill { height: 100%; width: 0; border-radius: 100px; background: linear-gradient(90deg, #3b82f6, #60a5fa); box-shadow: 0 0 10px rgba(59, 130, 246, .5); }
-.lg-thumb { position: absolute; width: 90px; height: 60px; top: 0; border-radius: 30px; transform: scale(.6); transform-origin: center center; user-select: none;
-  background-color: #fff; box-shadow: 0 3px 14px rgba(0, 0, 0, .3); overflow: hidden; will-change: transform, background-color; z-index: 10; }
+.lg-fill { height: 100%; width: 0; border-radius: 100px; background: var(--fill); box-shadow: 0 0 12px rgba(31, 123, 255, .45); }
+.lg-thumb { position: absolute; width: 90px; height: 60px; top: 0; border-radius: 30px; transform: scale(.75); transform-origin: center center; user-select: none;
+  background-color: rgba(255, 255, 255, .14); box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .36), inset 0 1px 6px rgba(255, 255, 255, .18), 0 3px 14px rgba(0, 0, 0, .35); overflow: hidden; will-change: transform, background-color; z-index: 10; }
 .lg-clone { position: absolute; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; border-radius: inherit; z-index: 1; opacity: 0; will-change: opacity; }
 .lg-backdrop .lg-clone { display: none; }
-.lg-clone-inner { position: absolute; top: 0; left: 0; pointer-events: none; background: #0a0d11; }      /* the control bar's colour (the pen used its page gradient) */
-.lg-clone-inner::before, .lg-clone-inner::after { content: ""; position: absolute; left: 0; top: var(--track-top, 0); height: 18px; border-radius: 100px; }
-.lg-clone-inner::before { width: 100%; background-color: rgba(255, 255, 255, .05); }
-.lg-clone-inner::after { width: calc(100% * var(--fill-width, 0) / 100); background: linear-gradient(90deg, #3b82f6, #60a5fa); }
+.lg-clone-inner { position: absolute; top: 0; left: 0; pointer-events: none; background: var(--bar); }      /* the control bar's colour (the pen used its page gradient) */
+.lg-clone-inner::before, .lg-clone-inner::after { content: ""; position: absolute; left: var(--track-left, 0); top: var(--track-top, 0); height: 18px; border-radius: 100px; }
+.lg-clone-inner::before { width: var(--track-w, 100%); background-color: var(--track); }
+.lg-clone-inner::after { width: calc(var(--track-w, 100%) * var(--fill-width, 0) / 100); background: var(--fill); }
 .lg-thumb-inner { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border-radius: inherit; z-index: 3; pointer-events: none; }
 
 /* panels over the animation (ui-panels.js) */
@@ -144,7 +145,7 @@ body.is-fullscreen.idle { cursor: none; }
 .icons-detail-body { flex: 1; min-height: 0; display: flex; gap: 18px; }
 .icons-stage { flex: none; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .07);
   background: radial-gradient(circle at 50% 45%, rgba(255, 255, 255, .045), rgba(255, 255, 255, 0) 70%), rgba(0, 0, 0, .28); display: flex; align-items: center; justify-content: center; overflow: hidden; }
-.icons-big { display: block; flex: none; }      /* sized in px by ui-panels.js (a square), centred by .icons-stage */
+.icons-big { display: block; flex: none; }      /* sized in px by ui-panels.js to fill .icons-stage (the code panel's height) */
 .icons-code { flex: 1; min-width: 0; margin: 0; overflow: auto; box-sizing: border-box; padding: 16px 18px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, .07); background: rgba(0, 0, 0, .34);
   font: 12.5px/1.65 ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: #cfd8df; white-space: pre-wrap; overflow-wrap: anywhere; tab-size: 2; }      /* soft-wrapped: no sideways scrolling */
 .icons-code .tk-c { color: #6f7f8c; font-style: italic; }

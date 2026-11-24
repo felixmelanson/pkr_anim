@@ -1,6 +1,6 @@
 'use strict';
 /* Liquid-glass scrub bar: a faithful port of the "Liquid Glass Slider" CodePen (MIT licence, © 2026 FGAMER768). The pen's exact
-   geometry and physics (90×60 thumb resting at 0.6 scale, 18 px track, squircle bezel 16, glass thickness 80, refractive index
+   geometry and physics (90×60 thumb, resting at 0.6 scale in the pen and 0.65 here, 18 px track, squircle bezel 16, glass thickness 80, refractive index
    1.45, the same three springs, the same displacement and specular maps and filter chain), built in the pen's own coordinates
    and then shrunk as a whole with one CSS scale (SCALE), so the lens behaves exactly as in the pen, only smaller. Pressing grows
    the thumb into a lens that bends the track and the blue fill into its rim; Chrome refracts the live backdrop
@@ -8,12 +8,15 @@
    Changes for the viewer: the track width follows the bar, a press on the track jumps there, and set(v) follows playback.
    LiquidScrub(el, { onInput(v) }) → { set(v), dragging() }; v is 0..1. */
 function LiquidScrub(el, o = {}) {
-  const SCALE = .5, TW = Math.round(el.clientWidth / SCALE) || 400;      // the pen's units: everything below is the pen's numbers
-  const c = { w: 90, h: 60, r: 30, tw: TW, th: 18, bw: 16, gt: 80, ri: 1.45, sr: .6, sd: 1 };
+  const SCALE = (el.clientHeight || 30) / 60, TW = Math.round(el.clientWidth / SCALE) || 400;      // the pen's units (everything below is the pen's numbers), scaled to the bar's CSS height
+  const c = { w: 90, h: 60, r: 30, tw: TW, th: 18, bw: 16, gt: 80, ri: 1.45, sr: .65, sd: .9 };      // sr: the resting thumb's scale (the pen's .6, a little larger here); sd: pressed (the pen's 1, a gentler grow)
   const uid = 'lgs' + Math.random().toString(36).slice(2, 7);
+  // the drawn bar is inset by half the resting thumb at each end, so it spans exactly the thumb centre's travel: the thumb stays
+  // centred on the blue edge all the way (at 0 on the bar's left end, at 100 on its right end)
+  const HALF = c.w * c.sr / 2, TRW = c.tw - 2 * HALF;
   el.innerHTML = `
     <div class="lg-root" style="width:${c.tw}px;height:${c.h}px;transform:scale(${SCALE})">
-      <div class="lg-track" style="width:${c.tw}px"><div class="lg-track-inner"><div class="lg-fill"></div></div></div>
+      <div class="lg-track" style="left:${HALF}px;width:${TRW}px"><div class="lg-track-inner"><div class="lg-fill"></div></div></div>
       <div class="lg-thumb">
         <div class="lg-clone"><div class="lg-clone-inner"></div></div>
         <div class="lg-thumb-inner"></div>
@@ -80,41 +83,50 @@ function LiquidScrub(el, o = {}) {
     return img;
   }
   const imageDataToDataURL = img => { const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height; cv.getContext('2d').putImageData(img, 0, 0); return cv.toDataURL(); };
-  const useBackdropFilter = (() => { const t = document.createElement('div'); t.style.backdropFilter = 'url(#test)'; return !!window.chrome && t.style.backdropFilter.includes('url'); })();
+  const useBackdropFilter = (() => { const t = document.createElement('div'); t.style.backdropFilter = 'url(#test)'; return !!window.chrome && t.style.backdropFilter.includes('url') && !/[?&]glass=copy/.test(location.search); })();      // ?glass=copy: the other browsers' path, for testing in Chrome
 
-  const s = { val: 0, pd: false, md: 0 };
-  const sp = { sc: new Spring(c.sr, 2000, 80), bo: new Spring(1, 2000, 80), sr: new Spring(.4, 100, 10) };
+  const s = { val: 0, pd: false, md: 0 }; let curSc = c.sr;
+  // the viewer's change: the thumb is glass at rest too (a faint milky body, REST_BO, and a gentler bend, REST_SR); pressing still
+  // grows it into the full lens. The pen rested on a solid white pill (body 1) and only turned to glass while pressed.
+  const REST_BO = .14, PRESS_BO = .06, REST_SR = .55, PRESS_SR = .9;
+  const sp = { sc: new Spring(c.sr, 2000, 80), bo: new Spring(REST_BO, 2000, 80), sr: new Spring(REST_SR, 100, 10) };
   let af = null;
   const pc = calculateDisplacementMap1D(c.gt, c.bw, SurfaceEquations.convex_squircle, c.ri);
   s.md = Math.max(...pc.map(Math.abs));
   el.querySelector('.lg-disp').setAttribute('href', imageDataToDataURL(calculateDisplacementMap2D(c.w, c.h, c.w, c.h, c.r, c.bw, s.md || 1, pc)));
   el.querySelector('.lg-spec').setAttribute('href', imageDataToDataURL(calculateSpecularHighlight(c.w, c.h, c.r, c.bw)));
-  // the lens filter is only switched on while the thumb is (or is becoming) glass: at rest it is a plain white pill, and a filter that
-  // is on but invisible still costs a re-filter whenever the thumb moves with playback
+  // the lens filter is on whenever the thumb is glass (now always): it re-filters only the thumb's own small area as it moves
   const lensOn = on => { const f = on ? `url(#${uid})` : 'none'; if (useBackdropFilter) { inner.style.backdropFilter = inner.style.webkitBackdropFilter = f; } else clone.style.filter = f; };
   if (useBackdropFilter) el.classList.add('lg-backdrop'); let lens = false;
 
+  const centre = v => HALF + (v / 100) * TRW;
   function upd() {      // the pen's upd(), with the clone lined up in the slider's own coordinates
-    fi.style.width = s.val + '%';
-    const tx = (c.w * c.sr) / 2 + (s.val / 100) * (c.tw - c.w * c.sr) - c.w / 2;
+    // the fill's edge sits under the glass, offset with progress: at 0 under its left rim, at 100 under its right, so the blue
+    // creeps across the lens as the clip plays. Outside the glass the bar looks the same as with the edge at the thumb's centre.
+    const cx = centre(s.val), fillPct = Math.max(0, Math.min(100, (s.val / 100 * TRW + (s.val / 100 - .5) * 2 * HALF * .9) / TRW * 100));
+    fi.style.width = fillPct + '%';
+    const tx = cx - c.w / 2;
     th.style.left = tx + 'px';
     if (!useBackdropFilter) {
-      ci.style.width = c.tw + 'px'; ci.style.height = c.h + 'px'; ci.style.transform = `translate(${-tx}px, 0px)`;
-      ci.style.setProperty('--track-top', `${(c.h - c.th) / 2}px`); ci.style.setProperty('--fill-width', s.val.toString());
+      // the copy sits inside the scaled thumb, so it is magnified by 1 / scale about the thumb's centre: the bar inside the glass
+      // keeps the bar's real height (unscaled, it showed at 0.6x at rest). The lens map stays on the thumb's own outline.
+      ci.style.width = c.tw + 'px'; ci.style.height = c.h + 'px';
+      ci.style.transformOrigin = `${tx + c.w / 2}px ${c.h / 2}px`; ci.style.transform = `translate(${-tx}px, 0px) scale(${1 / curSc})`;
+      ci.style.setProperty('--track-top', `${(c.h - c.th) / 2}px`); ci.style.setProperty('--fill-width', fillPct.toString()); ci.style.setProperty('--track-left', HALF + 'px'); ci.style.setProperty('--track-w', TRW + 'px');
     }
     el.setAttribute('aria-valuenow', (s.val / 100).toFixed(3));
   }
   function loop() {      // the pen's loop()
     const dt = Math.min(.032, 1 / 60);
-    sp.sc.setTarget(s.pd ? c.sd : c.sr); sp.bo.setTarget(s.pd ? .1 : 1); sp.sr.setTarget(s.pd ? .9 : .4);
-    const sc = sp.sc.update(dt), bo = sp.bo.update(dt);
+    sp.sc.setTarget(s.pd ? c.sd : c.sr); sp.bo.setTarget(s.pd ? PRESS_BO : REST_BO); sp.sr.setTarget(s.pd ? PRESS_SR : REST_SR);
+    const sc = sp.sc.update(dt), bo = sp.bo.update(dt); curSc = sc; if (!useBackdropFilter) upd();
     th.style.transform = `scale(${sc})`; th.style.backgroundColor = `rgba(255,255,255,${bo})`;
     clone.style.opacity = 1 - bo; dmap.setAttribute('scale', s.md * sp.sr.update(dt));
     const want = bo < .995; if (want !== lens) { lens = want; lensOn(want); }
     if (!Object.values(sp).every(x => x.isSettled())) af = requestAnimationFrame(loop); else af = null;
   }
-  // the pen's pointer mapping, in screen pixels (× SCALE)
-  const valAt = cx => { const wR = c.w * c.sr * SCALE, x0 = tr.getBoundingClientRect().left + wR / 2, tw = c.tw * SCALE - wR; return Math.max(0, Math.min(100, ((Math.max(x0, Math.min(x0 + tw, cx)) - x0) / tw) * 100)); };
+  // the pointer mapping, in screen pixels (× SCALE), over the thumb's travel
+  const valAt = cx => { const x0 = tr.getBoundingClientRect().left, tw = TRW * SCALE; return Math.max(0, Math.min(100, ((Math.max(x0, Math.min(x0 + tw, cx)) - x0) / tw) * 100)); };
   el.addEventListener('pointerdown', e => {
     e.preventDefault(); el.setPointerCapture(e.pointerId); s.pd = true; if (!af) af = requestAnimationFrame(loop);
     if (!th.contains(e.target)) { s.val = valAt(e.clientX); upd(); o.onInput && o.onInput(s.val / 100); }      // a press on the track jumps there

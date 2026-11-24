@@ -24,7 +24,7 @@ let SCL = 1, DPR = 1, DPR_CAP = 2;      // DPR_CAP: lowered to 1.5 by the adapti
 function resize() {
   DPR = RENDER_MODE ? 1 : Math.min(paused ? 2 : DPR_CAP, window.devicePixelRatio || 1);      // paused: always full sharpness
   const w = innerWidth, h = innerHeight, fs = !RENDER_MODE && !!document.fullscreenElement, narrow = w < 1000;
-  const dockH = RENDER_MODE || fs ? 0 : narrow ? 104 : 66;
+  const dockH = RENDER_MODE || fs ? 0 : narrow ? 130 : 90;
   SCL = RENDER_MODE ? (+QS.get('scale') || 1) : Math.min(w / W, (h - dockH) / H);
   const cw = W * SCL, ch = H * SCL, left = (w - cw) / 2, room = Math.min(h - ch, dockH + 60);      // room: the stage and its dock are centred together
   const top = RENDER_MODE || fs ? (h - ch) / 2 : Math.max(0, (h - ch - room) / 2);

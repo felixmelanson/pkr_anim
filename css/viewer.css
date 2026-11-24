@@ -97,7 +97,7 @@ body.is-fullscreen.idle { cursor: none; }
 
 /* liquid-glass scrub bar (scrub.js): the "Liquid Glass Slider" pen's styles (MIT, © 2026 FGAMER768), in its own units,
    inside .lg-root which scrub.js scales as a whole to the bar's height (48 px here: scale 0.8) */
-.lscrub { position: relative; width: 380px; height: 48px; margin: -6px -5px -6px 12px;      /* negative: the bar's inset ends (half a thumb each) count as the gap to the buttons */ cursor: pointer; touch-action: none; outline: none; }
+.lscrub { position: relative; width: 380px; height: 48px; margin: -6px auto;      /* auto sides: the bar sits in the middle of the space between the two button groups (equal on both sides) */ cursor: pointer; touch-action: none; outline: none; }
 .lscrub:focus-visible { outline: 2px solid rgba(59, 130, 246, .7); outline-offset: 3px; border-radius: 6px; }
 .lg-root { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
 .lg-track { position: absolute; height: 18px; left: 0; top: 21px; background-color: var(--track); border-radius: 100px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, .5); }
@@ -175,7 +175,7 @@ body.is-fullscreen.idle { cursor: none; }
 body.compact #controls { gap: 4px; padding: 7px 9px; }
 body.compact #controls button { width: 36px; height: 30px; flex: none; }
 body.compact #controls button svg { width: 17px; height: 17px; }
-body.compact .lscrub { width: auto; flex: 1 1 0; margin: -6px -2px -6px 4px; }
+body.compact .lscrub { width: auto; flex: 1 1 0; margin: -6px -2px; }
 body.no-fs #ctlFull { display: none; }      /* iPhone Safari: no fullscreen API */
 /* phones: the bar on top, the credit under it, the links under that, all centred */
 body.phone #dock { padding: 0 12px; grid-template-columns: minmax(0, 1fr); grid-template-rows: auto auto auto; row-gap: 10px; }

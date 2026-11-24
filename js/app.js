@@ -33,7 +33,7 @@ function resize() {
   cv.width = Math.round(cw * DPR); cv.height = Math.round(ch * DPR);
   const R = document.documentElement.style, set = (k, v) => R.setProperty(k, v);
   set('--stage-left', left + 'px'); set('--stage-top', top + 'px'); set('--stage-w', cw + 'px'); set('--stage-h', ch + 'px');
-  set('--dock-top', (top + ch) + 'px'); set('--dock-h', room + 'px'); set('--foot-x', (TITLE_X * SCL) + 'px'); set('--foot-fs', Math.max(12, 19 * SCL) + 'px');
+  set('--dock-top', (top + ch) + 'px'); set('--dock-h', room + 'px'); set('--foot-x', (TITLE_X * SCL) + 'px'); set('--foot-y', (FOOT_Y * SCL) + 'px'); set('--foot-fs', Math.max(12, 19 * SCL) + 'px');
   document.body.classList.toggle('is-fullscreen', fs); document.body.classList.toggle('narrow', narrow);
 }
 IMG_READY.then(() => requestAnimationFrame(() => document.body.classList.add('laid-out')));      // the dock shows with the first frame

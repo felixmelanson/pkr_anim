@@ -71,10 +71,16 @@ body.is-fullscreen #controls { background: var(--glass); backdrop-filter: blur(1
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 0 0 1px rgba(255, 255, 255, .035), 0 2px 6px rgba(0, 0, 0, .35);
   width: 50px; height: 32px; border-radius: 999px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background .15s ease;
 }
+#controls button:focus-visible { outline: 2px solid rgba(78, 160, 255, .55); outline-offset: 2px; }
 #controls button:hover { background: linear-gradient(180deg, rgba(255, 255, 255, .15), rgba(255, 255, 255, .09)); }
 #controls button:active { background: rgba(255, 255, 255, .2); }
 #controls button svg { display: block; width: 20px; height: 20px; }
-#stepLabel { font: 600 15px var(--ui); font-variant-numeric: tabular-nums; color: #b6bfca; min-width: 64px; text-align: center; letter-spacing: .4px; }
+/* the step number: over the stage, on the in-animation citation's line (FOOT_Y), right-aligned on the dock links' margin, in the citation's type */
+#stepLabel { position: fixed; z-index: 5; left: calc(var(--stage-left) + var(--stage-w) - var(--foot-x)); top: calc(var(--stage-top) + var(--foot-y)); transform: translate(-100%, -78%);
+  font: 500 var(--foot-fs) / 1 var(--ui); font-variant-numeric: tabular-nums; color: var(--foot); text-shadow: 0 0 6px #000, 0 0 2px #000; white-space: nowrap; pointer-events: none; visibility: hidden; }
+body.laid-out #stepLabel { visibility: visible; }
+body.render #stepLabel { display: none; }
+#controls button#ctlAuto.on { color: #6fb1ff; background: linear-gradient(180deg, rgba(31, 123, 255, .26), rgba(31, 123, 255, .14)); box-shadow: inset 0 1px 0 rgba(140, 190, 255, .18), inset 0 0 0 1px rgba(78, 160, 255, .3); }
 body.laid-out #dock { visibility: visible; opacity: 1; }      /* hidden until app.js has placed it (no flash in the top-left corner while the page loads) */
 /* narrow windows: controls on top, credit and links under them */
 body.narrow #dock { grid-template-columns: 1fr 1fr; grid-template-rows: auto auto; row-gap: 12px; align-content: center; }

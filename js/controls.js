@@ -4,7 +4,7 @@
 (function () {
   const scrubMax = () => STEPS[step].dur || 30;   // seconds: the bar's end is the clip's last frame
   const $ = id => document.getElementById(id);
-  const el = { prev: $('ctlPrev'), play: $('ctlPlay'), next: $('ctlNext'), replay: $('ctlReplay'), full: $('ctlFull'), stepLabel: $('stepLabel') };
+  const el = { prev: $('ctlPrev'), play: $('ctlPlay'), next: $('ctlNext'), replay: $('ctlReplay'), full: $('ctlFull'), auto: $('ctlAuto'), stepLabel: $('stepLabel') };
 
   const scrub = LiquidScrub($('ctlScrub'), { onInput: v => scrubTo(v * scrubMax()) });
 
@@ -35,10 +35,24 @@
   el.full.addEventListener('click', () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen());
   document.addEventListener('fullscreenchange', refreshFullIcon);
 
+  // autoplay: at the end of a clip, go straight on to the next (the next clip is preloaded and opens on this one's last frame, so
+  // it plays as one film). Off by default; the choice is remembered in this browser. A toggles it.
+  let auto = false; try { auto = localStorage.getItem('pkr-autoplay') === '1'; } catch (e) {}
+  function setAuto(v) {
+    auto = !!v; try { localStorage.setItem('pkr-autoplay', auto ? '1' : '0'); } catch (e) {}
+    el.auto.classList.toggle('on', auto); el.auto.setAttribute('aria-pressed', auto); el.auto.setAttribute('aria-label', 'Autoplay: ' + (auto ? 'on' : 'off'));
+  }
+  el.auto.addEventListener('click', () => setAuto(!auto));
+  // a clicked button lets go of focus: no focus ring after a click, and Space (next step) never re-presses the last button clicked
+  document.querySelectorAll('#controls button').forEach(b => b.addEventListener('pointerup', () => setTimeout(() => b.blur())));
+  addEventListener('keydown', e => { if (!UI_MODAL && (e.key === 'a' || e.key === 'A')) setAuto(!auto); });
+  setAuto(auto);
+
   // the scrub head follows playback (one cheap style update a frame)
   (function follow() {
     const t = paused ? pauseT : (performance.now() - stepStart) / 1000;
     scrub.set(Math.min(1, t / scrubMax()));
+    if (auto && !paused && !UI_MODAL && !scrub.dragging() && step < STEPS.length - 1 && t >= scrubMax() - .001) go(step + 1);
     requestAnimationFrame(follow);
   })();
 

@@ -19,6 +19,7 @@
   <button id="bridgeDebugCopy" class="bridge-debug-copy" type="button">Copy values</button>
 </aside>
 
+<span id="stepLabel" aria-live="polite">1 / 27</span>      <!-- the step number, over the stage's bottom-right corner, on the citation's line -->
 <div id="dock">
   <span class="credit">Animation by Felix Melanson</span>
   <div id="controls">
@@ -33,7 +34,9 @@
       <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M16 6h2v12h-2zM6 6l8.5 6L6 18z"/></svg>
     </button>
     <div id="ctlScrub" class="lscrub" role="slider" tabindex="0" aria-label="Position in this step" aria-valuemin="0" aria-valuemax="1" aria-valuenow="0"></div>
-    <span id="stepLabel">1 / 14</span>
+    <button id="ctlAuto" aria-label="Autoplay: off" aria-pressed="false" title="Autoplay (A)">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19.4 8.3A8.5 8.5 0 1 1 12 4"/><path d="M9.4 1.5 12 4 9.4 6.5"/><path d="M10.1 8.7v7.8l6.3-3.9z" fill="currentColor" stroke="none"/></svg>
+    </button>
     <button id="ctlReplay" aria-label="Replay step">
       <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg>
     </button>

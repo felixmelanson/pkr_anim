@@ -181,7 +181,7 @@ body.phone #controls { grid-column: 1; grid-row: 1; width: 100%; }
 body.phone #dock .credit { grid-column: 1; grid-row: 2; justify-self: center; }
 body.phone #credits { grid-column: 1; grid-row: 3; justify-self: center; gap: 20px; }
 body.phone #credits button { padding: 6px 0; }      /* bigger tap targets */
-body.phone.is-fullscreen #dock { width: calc(100vw - 24px); }
+body.phone #ctlAuto, body.phone #ctlReplay, body.phone #ctlFull { display: none; }      /* phones: prev / play / next and the scrub bar only */
 
 /* phones: panels use the whole screen, not the (short) stage */
 @media (max-width: 640px) {

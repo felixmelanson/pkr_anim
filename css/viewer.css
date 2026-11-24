@@ -64,7 +64,7 @@ body.render #dock, body.render #overlay { display: none; }
 /* TEMPORARY: hide the footer credit and links (Get Code, Get Icons, References, Animation by Felix Melanson) on the site. Delete this rule to bring them back. */
 #dock .credit, #credits { display: none !important; }
 #controls {
-  justify-self: center; display: flex; align-items: center; gap: 8px; padding: 13px 20px;
+  grid-column: 2; justify-self: center; display: flex; align-items: center; gap: 8px; padding: 13px 20px;
   border-radius: 999px; background: linear-gradient(180deg, #0b0c0f, #07080a); border: 1px solid rgba(255, 255, 255, .1); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .04), 0 12px 34px rgba(0, 0, 0, .55);      /* a near-black pill; solid, not blurred */      /* solid: it sits on black, and a backdrop blur here cost Firefox a re-blur every frame */
 }
 body.is-fullscreen #controls { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }      /* over the stage: frosted */
